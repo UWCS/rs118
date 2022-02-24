@@ -1,0 +1,482 @@
+# Notes
+
+Welcome to the first session of intro to rust.
+
+This tutorial will heavily lean on and is adapted from _The Rust Programming Language_, more commonly known as **the book**. Book chapters and links are referenced throughout, and it is recommended you read the entire chapter, as these notes are just here to supplement the slides. Other resources:
+
+- [Rust by Example](https://doc.rust-lang.org/rust-by-example/) - If you're looking for an example for something to explain how to do it or how it works, look here
+- [The Reference](https://doc.rust-lang.org/stable/reference/) - This is a complete\* reference for the Rust language. It is quite detailed and technical, but very thorough.
+
+Book chapters referenced throughout
+
+## Installing Rust ([1.1](https://doc.rust-lang.org/book/ch01-01-installation.html))
+
+We have a few bits we'll need
+
+- [`rustup`](https://rustup.rs/), for managing versions of Rust and the other tools below
+- [`cargo`](https://doc.rust-lang.org/cargo/), Rust's build tool and package manager. 99% of rust projects use cargo.
+- [`rustc`](https://doc.rust-lang.org/rustc/what-is-rustc.html), the Rust compiler itself
+- [`rust-analyser`](https://rust-analyzer.github.io/), the Rust language server
+
+This is made easy with `rustup`, which can be installed by running the command below. If you're on a system other than dcs, go to <https://rusutp.rs> for installation instructions.
+
+```bash
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+```
+
+Follow the onscreen instructions, and this will install Rust's default stable toolchain to `$HOME/.cargo`.
+
+You'll need to install rust-analyser separately. If you're using VSCode, the command
+
+```bash
+code --install-extension matklad.rust-analyzer
+```
+
+will install rust-analyser for you. See [the rust-analyser user manual](https://rust-analyzer.github.io/manual.html) for instructions for other editors.
+
+## Hello World ([1.2](https://doc.rust-lang.org/book/ch01-02-hello-world.html) & [1.3](https://doc.rust-lang.org/book/ch01-03-hello-cargo.html))
+
+Before we write any code, we need a new cargo project, or "crate".
+
+```bash
+cargo new hello_world
+```
+
+Open your new cargo project, and in the `hello_world` folder, you should see:
+
+- `Cargo.toml`, Cargo's config file, in [TOML](https://toml.io/en/) (Tom’s Obvious, Minimal Language) format.
+- `src/main.rs`
+  - The `src` directory is where all source code should live
+  - `main.rs` is the top-level source file in the crate. It's where the `main()` function should live.
+- A `.git` folder - cargo automatically `init`s a git repo for you.
+  - It also adds a default `.gitignore`
+
+Cargo has multiple commands that facilitate the building and running of rust projects
+
+- `cargo run` will build and run your code, using `main::main` as the entry point
+- `cargo build` will just compile the crate
+- `cargo check` will check your crate for errors
+- `cargo fmt` will format your code using [rustfmt]()
+- `cargo clippy` will lint your code using [clippy]()
+
+See [the book](https://doc.rust-lang.org/book/ch01-03-hello-cargo.html), and also [the cargo book](https://doc.rust-lang.org/cargo/index.html), for more info about cargo and the `Cargo.toml` file.
+
+Open `main.rs` in vscode and oh look, you don't even need to write hello world, cargo did it for you. You can delete it and write it out again, if you really want.
+
+```rust
+fn main() {
+    println!("hello world");
+}
+```
+
+- The `fn` keyword is used to declare functions
+- `main` is the name of the function
+- Parentheses `()` is where the parameter list goes, and braces `{}` are used to declare blocks
+- The `println!()` macro is used for command line output (more on macros/functions later)
+
+## Variables ([3.1](https://doc.rust-lang.org/book/ch03-00-common-programming-concepts.html))
+
+Variables in rust are declared, or _bound_, using the `let` keyword:
+
+```rust
+let x = 6;
+println!("The value of x is: {}", x);
+```
+
+Variables are **immutable by default** in Rust. This is A Good Thing (tm) because immutability means potential for errors. Prefer to leave variables as immutable, unless you absolutely have to.
+
+```rust
+let mut x = 5;
+println!("The value of x is: {}", x);
+x = 6;
+println!("The value of x is: {}", x);
+```
+
+## Types
+
+### Basic Types ([3.2](https://doc.rust-lang.org/book/ch03-05-control-flow.html))
+
+Rust has the following numeric types:
+
+| Bit Width | Signed  | Unsigned |
+| --------- | ------- | -------- |
+| 8         | `i8`    | `u8`     |
+| 16        | `i16`   | `u16`    |
+| 32        | `i32`   | `u32`    |
+| 64        | `i64`   | `u64`    |
+| 128       | `i128`  | `u128`   |
+| arch      | `isize` | `usize`  |
+
+(`usize/isize` are the pointer width of the architecture you're compiling for. You should use them for anything representing size/length/indices of data structures such as arrays.)
+
+We also have floats:
+
+| Bit Width | Signed |
+| --------- | ------ |
+| 32        | `f32`  |
+| 64        | `f64`  |
+
+Booleans are of type `bool` and are either `true` or `false`.
+
+Characters are of type `char` and are written using single quotes:
+
+```rust
+let c = 'c';
+let z = 'Z';
+let heart_eyed_cat = '😻';
+```
+
+`char`s in rust are four bytes in size, as a char is meant to represent a single unicode scalar value, meaning it can do much more than just ascii.
+
+### Compound Types ([3.2](https://doc.rust-lang.org/book/ch03-05-control-flow.html))
+
+Rust has tuples, which are used extensively. Tuples can be non-homogenous and of any length.
+
+```rust
+let tup = (1,2);
+let trip: (char,i32,f64) = ('A', -2, 100.01);
+```
+
+Tuples are accessed using dot syntax:
+
+```rust
+let one = tup.0;
+let minus_two = trip.2;
+```
+
+Arrays in rust have a fixed length and are allocated on the stack. They are indexed using brackets `[]`, and specified using the syntax `[type; length]`:
+
+```rust
+let a = [1,2,3];
+let first = a[0];
+let second = a[1];
+
+let b: [f32; 2] = [-2,4.1];
+
+// you can also use shorthand for creating arrays of the same element!
+let zeroes = [0; 10]; // ten zeroes!
+```
+
+Attempting to index out of bounds will cause a **panic**. Panics are Rust's way of throwing unrecoverable errors at runtime. More on those later.
+
+### Type Annotations
+
+`let` bindings can be annotated with their types using the following syntax:
+
+```rust
+let a: u16 = 4;
+let b: i32 = -1;
+let c: char = 'c';
+let d: &str = "hello!";
+let e: (i32,f32) = (12,12);
+let f: [u32; 3] = [1,2,3];
+```
+
+This is rarely necessary, as rust can infer types most of the time. More on all these types below.
+
+### Abstract Data Types
+
+We can use these basic types to build more complex types. Rust has two ways of doing this.
+
+#### Structures ([5](https://doc.rust-lang.org/book/ch05-00-structs.html))
+
+Those of you familiar with C will be familiar with structs. Structs are types with defined fields, where each field has a different name and type.
+
+- Structs can be created by giving values to the types, using the syntax shown.
+- Fields can be accessed or updated using dot notation.
+
+```rust
+struct Student{
+    name: String,
+    id: String,
+    year: u32,
+    active: bool,
+}
+
+let mut joey = Student {
+    name: String::from("Joey"),
+    id: String::from("1234567"),
+    year: 2,
+    active: false,
+};
+println!("My student ID is: {}", joey.id); // 1234567
+joey.year +=1;
+```
+
+#### Enums ([6.1](https://doc.rust-lang.org/book/ch06-01-defining-an-enum.html))
+
+Enums are types that represent a finite set of discrete values, where the value taken by the enum is one of the values from the set. Java and C both have support for enums, but Rust's enums are most similar to algebraic data types in functional languages such has Haskell and F#.
+
+Say we want to represent some colours. We have a Thing, and we need it to be either red, green, or blue:
+
+```Rust
+enum Colour {
+    Red,
+    Green,
+    Blue,
+}
+let thing_colour: Colour = Colour::Red;
+```
+
+We now have a new type, `Colour`, and three new values: `Colour::Red`, `Colour::Blue`, and `Colour::Green`.
+
+What makes enums really special is that variants can contain values:
+
+```rust
+enum MyEnum{
+    NoValue,
+    ANumber(u32),
+    TwoNumbers(u32,i64),
+    AString(String),
+}
+```
+
+This is a really powerful feature, especially when used in combination with pattern matching, and part of what makes rust really special.
+
+An example, using an enum to represent some shapes:
+
+```rust
+enum Shape {
+    Circle(u64),
+    Rectangle(u64,u64),
+    Triangle(u64,u64,u64),
+}
+```
+
+Or a recursive definition of a binary tree:
+
+```rust
+enum Tree {
+    Leaf(i32),
+    Branch(Tree, Tree),
+}
+```
+
+#### `Option<T>`
+
+A commonly used enum is `Option<T>`. Option is used to represent values that may or may not exist. Rust has no notion of `null` (no more `NullPointerExceptions` !), instead preferring to wrap other types in an `Option` when some similar notion of null is needed. This has advantages, as it forces you to explicitly deal with error cases, among other things.
+
+`T` is a generic type parameter, which we'll cover in more detail later.
+
+```rust
+enum Option<T> {
+    Some(T),
+    None,
+}
+```
+
+Think of it as a box which may or may not be empty. This enum is frequently used as a return type in methods that may fail:
+
+```rust
+fn div(x: i64, y: i64) -> Option<i64> {
+    if y == 0{
+        None
+    } else {
+        Some(x/y)
+    }
+}
+```
+
+This particular enum is very important, and we'll get to it later.
+
+## Functions ([3.3](https://doc.rust-lang.org/book/ch03-03-how-functions-work.html))
+
+Functions in Rust are declared using the `fn` keyword.
+
+- The list of parameters are declared between the parentheses, `name: type`
+- The return type is given using an arrow `-> type`
+  - Functions with no return type implicitly return `()`, [the unit type](https://doc.rust-lang.org/std/primitive.unit.html).
+
+```rust
+fn main() {
+    println!("this function has no parameters and no return type");
+}
+
+fn inc(x: i32) -> i32 {
+    println!("this function returns it's parameter plus one");
+    return x+1;
+}
+
+fn mul(a: f64, b: f64) {
+    println!("this function returns it's parameters multiplied");
+    a*b
+}
+
+fn zip(fst: i32, snd: i32) -> (i32,i32) {
+    (fst,snd)
+}
+```
+
+Note how in the last examples, the `return` keyword was not used, and there is no semicolon. This is because in rust, everything is an expression that returns a value, even blocks. The value of the last expression in a block is the return value of the block. Ending an expression with a semicolon discards the return value. This can be a tricky concept to grasp, see [The Reference](https://doc.rust-lang.org/reference/statements-and-expressions.html) for more detail.
+
+## Control Flow ([5.5](https://doc.rust-lang.org/book/ch03-05-control-flow.html))
+
+### `if` Expressions
+
+You all hopefully know how these work. Here's ths syntax:
+
+```rust
+let number = 6;
+
+if number % 4 == 0 {
+    println!("number is divisible by 4");
+} else if number % 3 == 0 {
+    println!("number is divisible by 3");
+} else if number % 2 == 0 {
+    println!("number is divisible by 2");
+} else {
+    println!("number is not divisible by 4, 3, or 2");
+}
+```
+
+Boolean expressions are combined with
+
+- `&&` and
+- `||` or
+- `!` not
+
+If expressions return a value too, so we can:
+
+```rust
+let condition = true;
+let x = if condition { 5 } else { 6 };
+```
+
+### `loop` loops
+
+`loop` expressions repeat ad infinitum:
+
+```rust
+loop {
+    println!("again!");
+}
+```
+
+(you can `break` out of one, if needs be.)
+
+### `while` loops
+
+Pretty standard stuff too:
+
+```rust
+let mut number = 3;
+
+while number != 0 {
+    println!("{}", number);
+
+    number -= 1;
+}
+```
+
+### `for` loops
+
+`for` loops are more like Python's, or Java's range-based for loop, than C/C++. They are used to iterate over a collection, using an _iterator_ (more on those later).
+
+```rust
+let a = [10, 20, 30, 40, 50];
+
+for element in a {
+    println!("the value is: {}", element);
+}
+```
+
+If you want to loop over a numerical range, you can create a range iterator:
+
+```rust
+for number in 1..10 {
+    println!("{}!", number);
+}
+
+for number in (1..10).rev() {
+    //this loop goes from 10 -> 1
+    println!("{}!", number);
+}
+```
+
+## Strings
+
+Strings in rust are not simple. For now, we will consider only `String`. `String` represents a mutable, variable length buffer which can hold your `char`s. Create an empty one with `String::new()`, or create one from a literal using `String::from()`:
+
+```rust
+let empty_string = String::new();
+let hello_world = String::from("Hello, World!");
+
+```
+
+The `::` operator is used to access methods which belong to a type. the `from()` and `new()` methods both belong to `String`, so we call them as shown. Think of them as static methods, for those of you into your Java.
+
+## Pattern Matching ([6.2](https://doc.rust-lang.org/book/ch06-02-match.html))
+
+Those of you familiar with functional languages will be pleased to hear that rust can do this. Those of you not lucky enough to be familiar with functional languages will likely be a bit confused. Think of it as a fancy switch statement for now. Here's an example, using our `Colour` enum from earlier:
+
+```rust
+enum Colour {
+    Red,Blue,Green,White,Black
+}
+fn colour_to_rgb(colour: Colour) -> (u8,u8,u8) {
+    match colour {
+        Colour::Red => (255,0,0),
+        Colour::Green => (0,255,0),
+        Colour::Blue => (0,0,255),
+        Colour::White => (255,255,255),
+        Colour::Black => (0,0,0),
+    }
+}
+```
+
+The cases come before the `=>`, and the return value for that **match arm** comes after it. The match returns one of those tuples, and then the function returns the return value of the `match`. Remember that we don't need a `return`
+
+However, pattern matching is much more powerful than this. We can include any expression after the match arm:
+
+```rust
+fn colour_to_rgb(colour: Colour) -> (u8,u8,u8) {
+    match colour {
+        Colour::Red => (255,0,0),
+        Colour::Green => (0,255,0),
+        Colour::Blue => {
+            println!("feeling blue");
+            (0,0,255)
+        },
+        Colour::White => if 10 % 2 == 0 {
+            (255,255,255)
+        } else {
+            unreachable!("Something is very wrong");
+        },
+        Colour::Black => (0,0,0),
+    }
+}
+```
+
+We can also use it to destructure values, and to bind values for use in the match arm. We can use `match` to work with these `Option<T>`, for example:
+
+```rust
+enum Option<T> {
+    Some(T),
+    None,
+}
+
+fn maybe_increment(x: Option<i64>) -> Option<i64> {
+    match x {
+        None => None,
+        Some(i) => i +1,
+    }
+}
+let five = Some(5);
+let six = plus_one(five);
+let none = plus_one(None);
+```
+
+Note that matches must be exhaustive. For example, if you're matching on a `u8`, you must cover all cases from 0 to 255. This is impractical, so the placeholder `_` can be used:
+
+```rust
+let val: u8 = 41;
+match val {
+    12 => println!("val is 12"),
+    21 => println!("val is 21"),
+    _ => println!("val is some other number that we don't care about"),
+}
+```
+
+Using the switch analogy again, it is like a default case.
+
+There are other places pattern matching can be used, such as in [`if let`](https://doc.rust-lang.org/rust-by-example/flow_control/if_let.html) and [`while let`](https://doc.rust-lang.org/rust-by-example/flow_control/while_let.html) expressions.
