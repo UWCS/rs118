@@ -723,4 +723,4 @@ fn main(){
 }
 ```
 
-Including `submod_3` includes `mod.rs`, and whatever items that module may export (probably some items from `subsubmod_1.rs`, `subsubmod_2.rs`). Structuring a crate well and maintaining control over what items are visible where (encapsulation) is key to writing good, maintainable rust code.
+Including `submod_3` includes `mod.rs`, and whatever items that module may export (probably some items from `subsubmod_1.rs`, `subsubmod_2.rs`). Structuring a crate well and maintaining control over what items are visible where (encapsulation) is key to writing good, maintainable rust code. This section is just an overview, so be sure to check [Rust by Example](https://doc.rust-lang.org/rust-by-example/mod.html) for more examples to help understand the concept.
