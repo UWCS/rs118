@@ -6,7 +6,7 @@ Gonna cover ownership. Shit will start to get confusing, but eventually will cli
 
 Rust does not have a garbage collector like Java/Python/C#/Go. Instead, it allows you to manually manage memory, but within a set of constraints enforced by the compiler:
 
-- Every value in rust has a variable that is it's **owner**
+- Every value in Rust has a variable that is it's **owner**
 - There can only be **one owner at a time**
 - When the owning variable goes out of scope, the value will be **dropped**
 
@@ -55,7 +55,7 @@ Rust is a big fan of _zero-cost abstraction_, meaning that lots of these details
 - The buffer is modified behind the scenes when we modify the string's size using `String::push_str()`
 - The memory is **automatically freed when the owning variable goes out of scope**
 
-This last bit is really key. Using the example above, we can see that `s` goes out of scope at the closing brace. `s` is the variable that _owns_ the string, so the as the owner goes out of scope, the memory is freed. This is done using a special function called [`drop()`](https://doc.rust-lang.org/std/ops/trait.Drop.html#tymethod.drop), which rust calls for us and is implemented automatically for most types.
+This last bit is really key. Using the example above, we can see that `s` goes out of scope at the closing brace. `s` is the variable that _owns_ the string, so the as the owner goes out of scope, the memory is freed. This is done using a special function called [`drop()`](https://doc.rust-lang.org/std/ops/trait.Drop.html#tymethod.drop), which Rust calls for us and is implemented automatically for most types.
 
 (This concept will be familiar to you if you know about the concept of Resource Acquisition Is Initialization (RAII) in C++)
 
@@ -226,28 +226,501 @@ fn takes_and_gives_back(a_string: String) -> String { // a_string comes into
 
 ## References and Borrowing ([4.2](https://doc.rust-lang.org/book/ch04-02-references-and-borrowing.html))
 
+What if we want to use a value in a function, without having to pass ownership around?
+
+```rust
+
+fn main() {
+    let s1 = String::from("hello");
+
+    let len = calculate_length(s1);
+
+    //error, s1 has been moved into calculate_length, then dropped when it went out of scope
+    println!("The length of '{}' is {}.", s1, len);
+
+}
+
+fn calculate_length(s: String) -> usize {
+    s.len()
+}
+```
+
+This is where **borrowing** comes in. **References** allow us to temporarily borrow values from their owner.
+
+```rust
+
+fn main() {
+    let mut s1 = String::from("hello");
+
+    let len = calculate_length(&s1);
+
+    //error, s1 has been moved into calculate_length, then dropped when it went out of scope
+    println!("The length of '{}' is {}.", s1, len);
+
+}
+
+fn calculate_length(s: &String) -> usize {
+    s.len()
+}
+```
+
+The ampersand `&` in front of `String` denotes that it is a **reference type**: the parameter `s` in the function does not own the `String`, _it owns a reference to it_. References are similar to pointers, except they come with a few more restrictions and static guarantees.
+
+- `&` in front of a type name denotes that the type is a reference to a value of that type, and does not have ownership
+- `&` in front of a value creates a reference to that value (see the call site in the listing above, `&s1`)
+
+![](https://doc.rust-lang.org/book/img/trpl04-05.svg)
+
+When you create a reference, you are **borrowing the value**.
+
+So, using that, try this below:
+
+```rust
+fn main() {
+    let mut s = String::from("hello");
+
+    add_world(&s);
+}
+
+fn add_world(some_string: &String) {
+    some_string.push_str(", world");
+}
+```
+
+Look at that compile error. You've tried to modify a value that you do not own, which is not allowed. When you create a reference, you are not allowed to modify it: **references are immutable**.
+
+### Mutable References
+
+I lied, you can modify values that you don't own, but you need a special kind of reference: `&mut`, the mutable reference:
+
+```rust
+fn main() {
+    let mut s = String::from("hello");
+
+    add_world(&mut s);
+
+}
+
+fn add_world(some_string: &mut String) {
+    some_string.push_str(", world");
+}
+```
+
+This works, because we told the function it could accept an `&mut String`, and then created one using `&mut s`. How about this?
+
+```rust
+fn main() {
+    let mut s = String::from("hello");
+
+    let ref_1 = &mut s;
+    let ref_2 = &mut s;
+    add_world(ref_1);
+    add_exclamation(ref_2);
+}
+
+fn add_world(some_string: &mut String) {
+    some_string.push_str(", world");
+}
+
+fn add_exclamation(some_string: &mut String){
+    some_string.push_str("!");
+}
+```
+
+I think the compiler is pretty clear here: **we can only have one mutable reference in scope at a time**. This is really annoying because this makes shared mutable state really hard, but for good reason. Shared mutable state is generally regarded as really bad, as it introduces loads of bugs: data races are non-existant, and theres no pointer aliasing at all. Rust will just straight up refuse to compile any of these bugs, which is very kind of it. Compare this to C, which doesn't give a shit how dumb you are, and will be even dumber in response.
+
+You also cannot combine mutable and immutable references:
+
+```rust
+  let mut s = String::from("hello");
+
+  let r1 = &s; // no problem
+  let r2 = &s; // no problem
+  let r3 = &mut s; // BIG PROBLEM
+
+  println!("{}, {}, and {}", r1, r2, r3);
+```
+
+You can have either:
+
+- **Any number of immutable references**
+- **One mutable reference**
+
+Remember that this all depends on scope though, and references are dropped when they leave scope or when they are last used:
+
+```rust
+let mut s = String::from("hello");
+
+let r1 = &s; // no problem
+let r2 = &s; // no problem
+println!("{} and {}", r1, r2);
+// variables r1 and r2 will not be used after this point
+
+let r3 = &mut s; // no problem
+println!("{}", r3);
+```
+
+Rust will also not allow you to create a reference to data that **outlives the reference**:
+
+```rust
+fn main() {
+    let reference_to_nothing = dangle();
+}
+
+fn dangle() -> &String {
+    let s = String::from("hello");
+    &s
+}
+```
+
+This code won't compile, because `s` goes out of scope at the end of `dangle`, so the string that it owns is dropped. This means that if you were to access the `reference_to_nothing` that `dangle` returns, it would be precisely that: a reference to something that no longer exists. `&s` would be a **dangling reference**, and Rust doesn't allow this.
+
+The concept of [lifetimes](https://doc.rust-lang.org/book/ch10-03-lifetime-syntax.html) deals with when and where references are valid, but that can get really fucky so we'll save that for another time.
+
 ## Slices ([4.3](https://doc.rust-lang.org/book/ch04-03-slices.html))
+
+Slices are a special kind of reference, that give you a view into a **contiguous sequence of elements**. Slices allow you to refer to parts of strings, arrays, or [`Vec`s](https://doc.rust-lang.org/book/ch08-01-vectors.html). Say we want to take a string, and return the first word in it:
+
+- We could return some indices, but this would be annoying to work with
+- We could create a copy, but this would be expensive (what if the word is really long?)
+- Or, we could use a slice, to return a reference to a part of the string:
+
+```rust
+fn first_word(s: &String) -> &str {
+    let bytes = s.as_bytes();
+
+    //some fancy for loop/iterator stuff
+    for (i, &item) in bytes.iter().enumerate() {
+        if item == b' ' {
+            return &s[0..i];
+        }
+    }
+
+    &s[..]
+}
+```
+
+The compiler will ensure that our slice of the string remains valid:
+
+```rust
+fn main() {
+    let mut s = String::from("hello world");
+
+    let word: &str = first_word(&s);
+
+    s.clear(); // error!
+
+    println!("the first word is: {}", word);
+}
+```
+
+This fails because `s.clear()` creates an immutable reference, which then invalidates our immutable slice in `word`, meaning we can no longer use it past that point.
+
+### `&str`
+
+`&str` is the string slice type, but it is also the type of string literals. Remember how string literals were stored inside the binary somewhere? Well slices allow us to refer to those immutably.
+
+```rust
+let s: &str = "Hello, World!";
+let s1: &str = &s[1..3];
+```
+
+We don't own the string, but we can slice it immutably.
+
+More detail on `String` and `&str` is available [in The Book](https://doc.rust-lang.org/book/ch08-02-strings.html). Rust uses UTF-8 encoding, so 1 byte != 1 character, and there's a fair amount of complexity associated with this.
+
+### Array slices
+
+You can also slice arrays:
+
+```rust
+let a: [i32; 5] = [1, 2, 3, 4, 5];
+
+let slice_1: &[i32] = &a[1..3];
+
+let slice_2: &[i32] = &a[4..5];
+
+```
 
 ## `Vec`s ([8.1](https://doc.rust-lang.org/book/ch08-01-vectors.html))
 
-## `String` and `&str` ([8.2](https://doc.rust-lang.org/book/ch08-02-strings.html))
+`Vec` are Rust's equivalent of:
 
-## Error Handling ([9](https://doc.rust-lang.org/book/ch09-00-error-handling.html))
+- Python's List
+- Java's ArrayList
+- C++'s std::vec
+
+They provide a contiguous, heap allocated, dynamically-allocated, homogenous, collection of elements.
+
+```rust
+let mut v1: Vec<i32> = Vec::new(); //a new, empty vec
+let v2: Vec<&str> = Vec::from(["hello", "world"]); //create a vec from an array
+
+//we can push
+v.push(5);
+v.push(6);
+v.push(7);
+v.push(8);
+
+//and pop
+//the vector may be empty, so this returns an option
+let maybe_tail: Option<i32> = v.pop();
+```
+
+We can also index and slice into vectors.
+
+```rust
+let mut v = vec![1, 2, 3, 4, 5];
+let third: &i32 = &v[2];
+
+println!("The third element is {third}");
+
+let mut_slice: &mut [i32] = &mut v[3..5];
+mut_slice[1] +=1;
+
+println!("The new last element is {}", mut_slice[1]);
+```
+
+Note that indexing is not a safe operation, and may panic if the index is out of bounds. We can fix this using the `get` method, which returns and `Option`.
+
+```rust
+let v = vec![1, 2, 3, 4, 5];
+
+//will panic!
+//let does_not_exist = &v[100];
+
+match v.get(100) {
+    Some(i) => println!("100th element is {i}"),
+    None => println!("Looks like your index is out of bounds there buddy"),
+}
+
+match v.get(2) {
+    Some(i) => println!("2nd element is {i}"),
+    None => println!("Looks like your index is out of bounds there buddy"),
+}
+```
+
+If you wanted to iterate over a vector, you might think of something like this:
+
+```rust
+let v = vec![100, 32, 57];
+for i in 0..len(v) {
+    print!("{i} ");
+}
+println!();
+```
+
+However, we can use iterators to do better:
+
+```rust
+let v = vec![100, 32, 57];
+for elem in &v {
+    print!("{elem} ");
+}
+println!();
+
+```
+
+This will iterate over an immutable reference to `v`, hence the `&v`. If we wanted to iterate over while mutating, we need a mutable iterator, which is created as you'd expect:
+
+```rust
+let v = vec![100, 32, 57];
+for elem in &mut v {
+    *elem+=1;
+    print!("{elem} ");
+}
+println!();
+```
+
+Note how we have to use the **dereference** operator on elem. Dereferencing is how we access the value behind a reference. This is often done implicitly for us, but sometimes we have to do it ourselves, like here.
 
 ## The Structure of a Rust Program ([7](https://doc.rust-lang.org/book/ch07-00-managing-growing-projects-with-packages-crates-and-modules.html))
 
+Using multiple files and directories to organise your code is very important as projects grow, and the way this is done in Rust is built into Cargo and the language.
+
+- A **crate** is a single compilation unit in rust
+  - Crates group related functionality
+  - Crates have a **crate root**
+    - `main.rs` for an executable
+    - `lib.rs` for a library
+- **Modules** are used to organise code within a crate
+  - Modules are nested to create a module tree
+
+Say for example we have a library crate that provides some functionality for a restaurant. We can use the `mod` keyword to create sub-modules within a single file:
+
+```rust,noplayground
+mod front_of_house {
+    mod hosting {
+        fn add_to_waitlist() {}
+
+        fn seat_at_table() {}
+    }
+
+    mod serving {
+        fn take_order() {}
+
+        fn serve_order() {}
+
+        fn take_payment() {}
+    }
+}
 ```
+
+which creates a structure like this
+
+```
+crate
+ └── front_of_house
+     ├── hosting
+     │   ├── add_to_waitlist
+     │   └── seat_at_table
+     └── serving
+         ├── take_order
+         ├── serve_order
+         └── take_payment
+```
+
+We can then use paths to refer to items in the module tree:
+
+- An absolute path starts from the crate root using either the crate name, or `crate::`
+- A relative path starts from the current module
+  - The `self` identifier refers to the current module
+    - Like `.` in a filesystem path
+  - The `super` identifier refers to the parent module
+    - Like `..` in a filesystem path
+
+```rust
+mod front_of_house {
+    mod hosting {
+        fn add_to_waitlist() {}
+    }
+}
+
+pub fn eat_at_restaurant() {
+    // Absolute path
+    crate::front_of_house::hosting::add_to_waitlist();
+
+    // Relative path
+    front_of_house::hosting::add_to_waitlist();
+}
+```
+
+This example won't compile, for another reason. Everything within a module, including submodules, is **private by default**. If you want to expose a module, function, or type within a module, you need to mark it with the `pub` keyword:
+
+```rust
+mod front_of_house {
+    pub mod hosting {
+        pub fn add_to_waitlist() {}
+    }
+}
+
+pub fn eat_at_restaurant() {
+    // Absolute path
+    crate::front_of_house::hosting::add_to_waitlist();
+
+    // Relative path
+    front_of_house::hosting::add_to_waitlist();
+}
+```
+
+You can also bring paths into scope using the `use` keyword, which means you don't have to write out massively long paths every time
+
+```rust
+mod front_of_house {
+    pub mod hosting {
+        pub fn add_to_waitlist() {}
+    }
+}
+
+use crate::front_of_house::hosting::add_to_waitlist;
+
+pub fn eat_at_restaurant() {
+    add_to_waitlist();
+    add_to_waitlist();
+    add_to_waitlist();
+}
+```
+
+This is how items within the standard library are typically used
+
+```rust
+use std::collections::HashMap;
+
+fn main() {
+    let mut map = HashMap::new();
+    map.insert(1, 2);
+}
+```
+
+The `use` keyword can also be used to re-export items:
+
+```rust
+mod front_of_house {
+    pub mod hosting {
+        pub fn add_to_waitlist() {}
+    }
+}
+
+pub use crate::front_of_house::hosting;
+
+pub fn eat_at_restaurant() {
+    hosting::add_to_waitlist();
+    hosting::add_to_waitlist();
+    hosting::add_to_waitlist();
+}
+```
+
+This not only brings the item into scope for the current module, but also allows exports the item as publicly available for parent modules to use.
+
+### Modules in Separate Files
+
+Putting submodules in the same file is generally not done, except for very specific use cases. The other way to create modules is to put each one in it's own file, and then include those modules in your crate root using `mod filename;`. Say we had the following crate structure:
+
+```
+.
+├── Cargo.toml
+└── src
+    ├── main.rs
+    ├── submod_1.rs
+    └── submod_2.rs
+```
+
+We could then do the following
+
+```rust
+mod submod_1;
+pub mod submod_2;
+fn main(){
+    submod_1::foo();
+    submod_2::bar();
+}
 
 ```
 
-```
+- `submod_1` is imported and re-exported
+- `submod_2` is just imported
+
+We can also use `mod.rs` files to make directories appear as a single module. Say we extend our example from above:
 
 ```
-
+.
+├── Cargo.toml
+└── src
+    ├── main.rs
+    ├── submod_1.rs
+    ├── submod_2.rs
+    └── submod_3
+        ├── mod.rs
+        ├── subsubmod_1.rs
+        └── subsubmod_2.rs
 ```
 
+```rust
+mod submod_3;
+fn main(){
+    submod_1::foo();
+    submod_2::bar();
+}
 ```
 
-```
-
-```
+Including `submod_3` includes `mod.rs`, and whatever items that module may export (probably some items from `subsubmod_1.rs`, `subsubmod_2.rs`). Structuring a crate well and maintaining control over what items are visible where (encapsulation) is key to writing good, maintainable rust code.
