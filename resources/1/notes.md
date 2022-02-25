@@ -6,8 +6,8 @@ This tutorial will heavily lean on and is adapted from _The Rust Programming Lan
 
 - [Rust by Example](https://doc.rust-lang.org/rust-by-example/) - If you're looking for an example for something to explain how to do it or how it works, look here
 - [The Reference](https://doc.rust-lang.org/stable/reference/) - This is a complete\* reference for the Rust language. It is quite detailed and technical, but very thorough.
-
-Book chapters referenced throughout
+- [Rustlings](https://github.com/rust-lang/rustlings) - Lots of little exercises and examples to demonstrate specific concepts
+  Book chapters referenced throughout
 
 ## Installing Rust ([1.1](https://doc.rust-lang.org/book/ch01-01-installation.html))
 
