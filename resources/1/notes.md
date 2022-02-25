@@ -2,7 +2,7 @@
 
 Welcome to the first session of intro to rust.
 
-This tutorial will heavily lean on and is adapted from _The Rust Programming Language_, more commonly known as **the book**. Book chapters and links are referenced throughout, and it is recommended you read the entire chapter, as these notes are just here to supplement the slides. Other resources:
+This tutorial will heavily lean on and is adapted from _The Rust Programming Language_, more commonly known as **The Book**. Book chapters and links are referenced throughout, and it is recommended you read the entire chapter, as these notes are just here to supplement the slides. Other resources:
 
 - [Rust by Example](https://doc.rust-lang.org/rust-by-example/) - If you're looking for an example for something to explain how to do it or how it works, look here
 - [The Reference](https://doc.rust-lang.org/stable/reference/) - This is a complete\* reference for the Rust language. It is quite detailed and technical, but very thorough.
@@ -14,7 +14,7 @@ Book chapters referenced throughout
 We have a few bits we'll need
 
 - [`rustup`](https://rustup.rs/), for managing versions of Rust and the other tools below
-- [`cargo`](https://doc.rust-lang.org/cargo/), Rust's build tool and package manager. 99% of rust projects use cargo.
+- [`cargo`](https://doc.rust-lang.org/cargo/), Rust's build tool and package manager. 99% of Rust projects use cargo.
 - [`rustc`](https://doc.rust-lang.org/rustc/what-is-rustc.html), the Rust compiler itself
 - [`rust-analyser`](https://rust-analyzer.github.io/), the Rust language server
 
@@ -36,22 +36,22 @@ will install rust-analyser for you. See [the rust-analyser user manual](https://
 
 ## Hello World ([1.2](https://doc.rust-lang.org/book/ch01-02-hello-world.html) & [1.3](https://doc.rust-lang.org/book/ch01-03-hello-cargo.html))
 
-Before we write any code, we need a new cargo project, or "crate".
+Before we write any code, we need a new Cargo project, or "crate".
 
 ```bash
 cargo new hello_world
 ```
 
-Open your new cargo project, and in the `hello_world` folder, you should see:
+Open your new Cargo project, and in the `hello_world` folder, you should see:
 
 - `Cargo.toml`, Cargo's config file, in [TOML](https://toml.io/en/) (Tom’s Obvious, Minimal Language) format.
 - `src/main.rs`
   - The `src` directory is where all source code should live
   - `main.rs` is the top-level source file in the crate. It's where the `main()` function should live.
-- A `.git` folder - cargo automatically `init`s a git repo for you.
+- A `.git` folder - Cargo automatically `init`s a git repo for you.
   - It also adds a default `.gitignore`
 
-Cargo has multiple commands that facilitate the building and running of rust projects
+Cargo has multiple commands that facilitate the building and running of Rust projects
 
 - `cargo run` will build and run your code, using `main::main` as the entry point
 - `cargo build` will just compile the crate
@@ -59,9 +59,9 @@ Cargo has multiple commands that facilitate the building and running of rust pro
 - `cargo fmt` will format your code using [rustfmt]()
 - `cargo clippy` will lint your code using [clippy]()
 
-See [the book](https://doc.rust-lang.org/book/ch01-03-hello-cargo.html), and also [the cargo book](https://doc.rust-lang.org/cargo/index.html), for more info about cargo and the `Cargo.toml` file.
+See [The Book](https://doc.rust-lang.org/book/ch01-03-hello-cargo.html), and also [The Cargo Book](https://doc.rust-lang.org/cargo/index.html), for more info about Cargo and the `Cargo.toml` file.
 
-Open `main.rs` in vscode and oh look, you don't even need to write hello world, cargo did it for you. You can delete it and write it out again, if you really want.
+Open `main.rs` in vscode and oh look, you don't even need to write hello world, Cargo did it for you. You can delete it and write it out again, if you really want.
 
 ```rust
 fn main() {
@@ -76,7 +76,7 @@ fn main() {
 
 ## Variables ([3.1](https://doc.rust-lang.org/book/ch03-00-common-programming-concepts.html))
 
-Variables in rust are declared, or _bound_, using the `let` keyword:
+Variables in Rust are declared, or _bound_, using the `let` keyword:
 
 ```rust
 let x = 6;
@@ -126,7 +126,7 @@ let z = 'Z';
 let heart_eyed_cat = '😻';
 ```
 
-`char`s in rust are four bytes in size, as a char is meant to represent a single unicode scalar value, meaning it can do much more than just ascii.
+`char`s in Rust are four bytes in size, as a char is meant to represent a single unicode scalar value, meaning it can do much more than just ascii.
 
 ### Compound Types ([3.2](https://doc.rust-lang.org/book/ch03-05-control-flow.html))
 
@@ -144,7 +144,7 @@ let one = tup.0;
 let minus_two = trip.2;
 ```
 
-Arrays in rust have a fixed length and are allocated on the stack. They are indexed using brackets `[]`, and specified using the syntax `[type; length]`:
+Arrays in Rust have a fixed length and are allocated on the stack. They are indexed using brackets `[]`, and specified using the syntax `[type; length]`:
 
 ```rust
 let a = [1,2,3];
@@ -172,7 +172,7 @@ let e: (i32,f32) = (12,12);
 let f: [u32; 3] = [1,2,3];
 ```
 
-This is rarely necessary, as rust can infer types most of the time. More on all these types below.
+This is rarely necessary, as Rust can infer types most of the time. More on all these types below.
 
 ### Abstract Data Types
 
@@ -231,7 +231,7 @@ enum MyEnum{
 }
 ```
 
-This is a really powerful feature, especially when used in combination with pattern matching, and part of what makes rust really special.
+This is a really powerful feature, especially when used in combination with pattern matching, and part of what makes Rust really special.
 
 An example, using an enum to represent some shapes:
 
@@ -307,7 +307,7 @@ fn zip(fst: i32, snd: i32) -> (i32,i32) {
 }
 ```
 
-Note how in the last examples, the `return` keyword was not used, and there is no semicolon. This is because in rust, everything is an expression that returns a value, even blocks. The value of the last expression in a block is the return value of the block. Ending an expression with a semicolon discards the return value. This can be a tricky concept to grasp, see [The Reference](https://doc.rust-lang.org/reference/statements-and-expressions.html) for more detail.
+Note how in the last examples, the `return` keyword was not used, and there is no semicolon. This is because in Rust, everything is an expression that returns a value, even blocks. The value of the last expression in a block is the return value of the block. Ending an expression with a semicolon discards the return value. This can be a tricky concept to grasp, see [The Reference](https://doc.rust-lang.org/reference/statements-and-expressions.html) for more detail.
 
 ## Control Flow ([5.5](https://doc.rust-lang.org/book/ch03-05-control-flow.html))
 
@@ -395,7 +395,7 @@ for number in (1..10).rev() {
 
 ## Strings
 
-Strings in rust are not simple. For now, we will consider only `String`. `String` represents a mutable, variable length buffer which can hold your `char`s. Create an empty one with `String::new()`, or create one from a literal using `String::from()`:
+Strings in Rust are not simple. For now, we will consider only `String`. `String` represents a mutable, variable length buffer which can hold your `char`s. Create an empty one with `String::new()`, or create one from a literal using `String::from()`:
 
 ```rust
 let empty_string = String::new();
@@ -407,7 +407,7 @@ The `::` operator is used to access methods which belong to a type. the `from()`
 
 ## Pattern Matching ([6.2](https://doc.rust-lang.org/book/ch06-02-match.html))
 
-Those of you familiar with functional languages will be pleased to hear that rust can do this. Those of you not lucky enough to be familiar with functional languages will likely be a bit confused. Think of it as a fancy switch statement for now. Here's an example, using our `Colour` enum from earlier:
+Those of you familiar with functional languages will be pleased to hear that Rust can do this. Those of you not lucky enough to be familiar with functional languages will likely be a bit confused. Think of it as a fancy switch statement for now. Here's an example, using our `Colour` enum from earlier:
 
 ```rust
 enum Colour {

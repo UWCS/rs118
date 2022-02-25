@@ -2,7 +2,7 @@
 
 ## Task 0
 
-If you haven't installed rust/cargo already, head to <https://rustup.rs>
+If you haven't installed Rust/cargo already, head to <https://rustup.rs>
 
 ```bash
 cargo new tic-tac-toe
@@ -86,7 +86,7 @@ for row in board.grid {
 
 ## Task 2.1
 
-You'll need `std::io`, which is a module from Rust's standard library. Modules are imported in rust using the `use` keyword, so something like:
+You'll need `std::io`, which is a module from Rust's standard library. Modules are imported in Rust using the `use` keyword, so something like:
 
 ```rust
 use std::io::stdin;
@@ -218,7 +218,7 @@ This bit is a little more complicated. `Board.grid` is an array of `Option<Playe
 {{#include ../../tic-tac-toe/src/main.rs:79:119}}
 ```
 
-The `Eq` and `PartialEq` derives from earlier allow us to use the `==` operator to compare instances of our `Player` type. More info about those can be found [in the book](https://doc.rust-lang.org/book/appendix-03-derivable-traits.html#partialeq-and-eq-for-equality-comparisons)
+The `Eq` and `PartialEq` derives from earlier allow us to use the `==` operator to compare instances of our `Player` type. More info about those can be found [in The Book](https://doc.rust-lang.org/book/appendix-03-derivable-traits.html#partialeq-and-eq-for-equality-comparisons)
 
 ## The Final Product
 

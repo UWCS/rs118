@@ -4,7 +4,7 @@ We're gonna use everything we learned to put together a neat little game of tic-
 
 ## Task 0: Create a new project
 
-**Task 0.0**: Create a new cargo project, `cd` into it, and open your editor. Check [the book](https://doc.rust-lang.org/book/ch01-03-hello-cargo.html) for info on how to do this.
+**Task 0.0**: Create a new Cargo project, `cd` into it, and open your editor. Check [The Book](https://doc.rust-lang.org/book/ch01-03-hello-cargo.html) for info on how to do this.
 
 ## Task 1: Data Types
 
@@ -64,7 +64,7 @@ The first bit you've already written, but we need to do the rest too
 <details>
     <summary>Hint</summary>
     <p>
-    You'll need some way to read user input from stdin. Check the book, or Rust by Example, to see if there are any examples for this.
+    You'll need some way to read user input from stdin. Check The Book, or Rust by Example, to see if there are any examples for this.
     </p>
 </details>
 
@@ -95,6 +95,6 @@ Two players should hopefully be able to play your game now, taking turns, and sp
 <details>
     <summary>Hint</summary>
     <p>
-    Rust might not allow you to compare the equality of two types so easily. This is also A Good Thing (tm) because the notion of equality is not so simple for all types, so much so that rust splits it into two traits, Eq and PartialEq. You might want to derive them for your custom player type to help with this. Traits, and deriving them, will be covered in more detail next time.
+    Rust might not allow you to compare the equality of two types so easily. This is also A Good Thing (tm) because the notion of equality is not so simple for all types, so much so that Rust splits it into two traits, Eq and PartialEq. You might want to derive them for your custom player type to help with this. Traits, and deriving them, will be covered in more detail next time.
     </p>
 </details>
