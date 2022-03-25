@@ -2,8 +2,8 @@
 authors = ["Joey Harrison <joeyh021@icloud.com>"]
 language = "en"
 multilingual = false
-src = "resources"
-title = "UWCS Learns Rust"
+src = "src"
+title = "RS118: UWCS Learns Rust"
 
 
 [output.html.fold]
