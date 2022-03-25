@@ -39,7 +39,7 @@ You're finally ready to write your game. You'll want a game loop in your main fu
 
 The first bit you've already written, but we need to do the rest too
 
-**Task 2.1**: Write some code to prompt for user input in a loop, storing whatever data they enter with a `let` binding.
+**Task 2.1**: Write some code to prompt for user input in a loop, storing whatever data they enter.
 
 What kind of loop do you want (`for`/`while`/`loop`), and when do you want to break out of it/jump back to the top of it? Consider your control flow carefully here. You'll also need some way to read user input from the terminal. Rust has a [`Stdin` struct](https://doc.rust-lang.org/std/io/fn.stdin.html) with a `read_line()` method in it's standard library. The Book and Rust by Example have some good examples of this.
 
@@ -48,6 +48,8 @@ Now we have player input, we need to use it to update the state of the game.
 **Task 2.2**: use the input to add the player's turn to the board, if it is a valid guess.
 
 What constitutes valid input for a turn? You have 9 squares on your game board, and you can't play where there is already a square in that space. If the guess isn't valid, you'll need to get the player to input a new guess.
+
+**Task 2.3**: At the end of each turn, you need to move the game to the next player. Add some code to make sure players take turns properly in your loop, and make sure you game is mostly coherent at this point.
 
 ## Task 3: A winner?
 
