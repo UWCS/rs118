@@ -4,7 +4,7 @@ We're gonna use everything we learned to put together a neat little game of tic-
 
 ## Task 0: Create a new project
 
-**Task 0.0**: Create a new Cargo project, `cd` into it, and open your editor. Check [The Book](https://doc.rust-lang.org/book/ch01-03-hello-cargo.html) if you need a reminder on how to do this.
+**Task 0**: Create a new Cargo project, `cd` into it, and open your editor. Check [The Book](https://doc.rust-lang.org/book/ch01-03-hello-cargo.html) if you need a reminder on how to do this.
 
 ## Task 1: Data Types
 
