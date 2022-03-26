@@ -39,9 +39,9 @@ The first step we're gonna take is to lay out our program using modules. Refer b
 
 Create a new directory next to `main.rs` called `interpreter`, and then add `interpreter/mod.rs`. Add the line `mod interpreter;` to the top of `main.rs` so the `interpreter` module is added to the module tree. This module is where most of our code is going to live. Feel free to create any other modules you wish alongside `mod.rs` too, but don't forget to include them in the module tree.
 
-In our new interpreter module we want to create a struct that will represent the state of our CHIP-8 virtual machine.
-
 ### Task 1.2: The Interpreter Type
+
+In our new interpreter module we want to create a struct that will represent the state of our CHIP-8 virtual machine.
 
 Create a new struct type, adding any fields that you see fit. Also add an `impl` block for your struct, and create a `new()` associated function to return a default copy of our struct. `new()` can take whatever arguments you see fit to create a new virtual machine.
 
@@ -140,13 +140,15 @@ The index register is a special 16-byte register, which is generally used to poi
 
 ### Task 3.6: Dxyn (draw)
 
-This is probably the hardest instruction. CHIP-8 has sprites which are 8 bits wide and up to 15 bytes tall. This instruction draws one of those sprites to the screen at position (`Vx`,`Vy`). Info on how sprites should wrap varies, but generally the X and Y coordinates should be modulo the display size, ie an X-coordinate of 69 should be interpreted as a coordinate of 6. Drawing works by XORing the pixels onto the display, and the `VF` register should also be set to `1` if this causes any pixels to be erased.
+This is probably the hardest instruction. CHIP-8 has sprites which are 8 bits wide and up to 15 bytes tall. This instruction draws the sprite starting at the address in the index register to the screen at position (`Vx`,`Vy`). Info on how sprites should wrap varies, but generally the X and Y coordinates should be modulo the display size, ie an X-coordinate of 69 should be interpreted as a coordinate of 6, and sprites should not partially wrap. Drawing works by XORing the pixels onto the display, and the `VF` register should also be set to `1` if this causes any pixels to be erased.
 
 - Set `X` to the value in `Vx` modulo 64
 - Set `Y` to the value in `Vy` modulo 32
 - Zero `VF`
 - For each row in the n-byte sprite
+  - if y is out of bounds, stop drawing the sprite
   - For each bit in the byte/row
+    - If x is out of bounds, stop drawing the row
     - XOR the bit onto the screen
       - Set `VF = 1` if this caused a pixel to be erased.
 
@@ -154,7 +156,7 @@ Check the resources at the bottom (and also google for anything else you can fin
 
 ### Task 3.7: This Tutorial Not Sponsored By IBM
 
-Theoretically, you should be able to run the IBM ROM now ([Link]()). But first you need a way to load it into memory. CHIP-8 Programs start at `0x200` in memory, so you need to write a method to load a ROM from disk into memory. [`std::fs::read`](https://doc.rust-lang.org/stable/std/fs/fn.read.html) will load a file from disk and return it as `Vec` of bytes, but how to get it into memory is up to you. You could add it to your `new()` function, or create a separate `load()` function. Make sure you properly handle the `Result` that the `fs::read` returns too, in case you give it a file that doesn't exist.
+Theoretically, you should be able to run the IBM ROM now ([Link]([)](https://github.com/Joeyh021/rs118-chip8/blob/main/roms/IBM%20Logo.ch8)). But first you need a way to load it into memory. CHIP-8 Programs start at `0x200` in memory, so you need to write a method to load a ROM from disk into memory. [`std::fs::read`](https://doc.rust-lang.org/stable/std/fs/fn.read.html) will load a file from disk and return it as `Vec` of bytes, but how to get it into memory is up to you. You could add it to your `new()` function, or create a separate `load()` function. Make sure you properly handle the `Result` that the `fs::read` returns too, in case you give it a file that doesn't exist.
 
 ### Task 3.8: Debugging
 
@@ -176,10 +178,12 @@ Some advice:
 - Make sure you handle wrapping to 8/12/16 bit boundaries correctly, making use of the standard library's wrapping and saturating add/sub methods.
   - `n & 0xfff` will wrap `n` to a 12 bit boundary
 - Some instructions require you set `VF` under certain conditions.
-- This is a very specific use case where casting in Rust can be annoying. Make sure all your `as` operations are in the right place.
+- This is a very specific use case where casting in Rust can be annoying, as CHIP-8 has no strong type system like Rust does. Make sure all your `as` casts are in the right place.
 - You don't have to completely re-architect the whole thing to implement the `Fx0A` instruction, trust me. Ask for help with this one if you need.
+- You'll need the `rand` rate to generate random numbers
+- You'll need to initialise the font in memory at some point. Where/how is best to do this? Font usually starts at 0x50, but can be anywhere in the first 512 bytes.
 - Ask for help from a friend or lab tutor, or in [Discord](https://discord.uwcs.co.uk) if you get stuck
-- Look at existing implementations, including [our own](ADD LINK) if you get really stuck
+- Look at existing implementations if you get really stuck
 
 Not all ROMS you find online will work, as some may be written for Super CHIP-8, an extension of CHIP-8 that adds a few more instructions. Feel free to extend your emulator with these instructions if you want.
 
