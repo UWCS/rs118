@@ -31,6 +31,10 @@ There's 3 functions our own interpreter will need to provide for a complete trai
 
 The first one is the main driver function of your interpreter that you'll have to implement, and will execute it one cycle at a time, modifying internal state as necessary. The other two are just helpers to provide the trait with some more info it needs to run your interpreter correctly. Have a think about what these type
 
+### Task 0.3: Git Good
+
+Cargo initialises your new project as a git repo. It does this for a reason, to encourage you to use version control. If you aren't familiar with git, check out our git good resources on our website [LINKS??]. Make a new commit every time you change or try something, so you can keep track of what you've done and roll back if things break. Commit _at least_ when you've done each task.
+
 ## 1: The Virtual Machine
 
 The first step we're gonna take is to lay out our program using modules. Refer back to The Book if you need a refresher on how to create modules and structure a Rust program.
