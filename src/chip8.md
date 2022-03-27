@@ -126,7 +126,7 @@ The `step()` function should return `Some(Display)` when the display is updated,
 
 ### Task 3.2: 1nnn (jump)
 
-This instruction has one operand, `nnn`, a 12-byte address that should be pushed onto the stack. You can't represent 12-byte values in rust, so pick another type accordingly and include checks/wrapping to make sure that the value remains within 12 bytes. The program counter should simply be set to the value of the operand.
+This instruction has one operand, `nnn`, a 12-bit address that should be pushed onto the stack. Rust doesn't have a 12-bit number type, so pick another type accordingly and include checks/wrapping to make sure that the value remains within 12 bits. The program counter should simply be set to the value of the operand.
 
 ### Task 3.3: 6xnn (set register Vx)
 
@@ -140,7 +140,7 @@ Add the value `nn` to the value in the register `Vx`. This instruction may overf
 
 ### Task 3.5: Annn (set index register)
 
-The index register is a special 16-byte register, which is generally used to point at locations in memory. This instruction should set the index register to the 12-bit value `nnn`
+The index register is a special 16-bit register, which is generally used to point at locations in memory. This instruction should set the index register to the 12-bit value `nnn`
 
 ### Task 3.6: Dxyn (draw)
 

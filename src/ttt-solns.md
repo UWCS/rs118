@@ -240,6 +240,7 @@ fn main() {
 
         stdin().read_line(&mut turn).expect("Failed to read line");
         let guess: Result<usize, _> = turn.trim().parse();
+        turn.clear();
 
         if guess.is_err() {
             continue;

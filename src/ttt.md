@@ -41,7 +41,7 @@ The first bit you've already written, but we need to do the rest too
 
 **Task 2.1**: Write some code to prompt for user input in a loop, storing whatever data they enter.
 
-What kind of loop do you want (`for`/`while`/`loop`), and when do you want to break out of it/jump back to the top of it? Consider your control flow carefully here. You'll also need some way to read user input from the terminal. Rust has a [`Stdin` struct](https://doc.rust-lang.org/std/io/fn.stdin.html) with a `read_line()` method in it's standard library. The Book and Rust by Example have some good examples of this.
+What kind of loop do you want (`for`/`while`/`loop`), and when do you want to break out of it/jump back to the top of it? Consider your control flow carefully here. You'll also need some way to read user input from the terminal. Rust has a [`Stdin` struct](https://doc.rust-lang.org/std/io/fn.stdin.html) with a `read_line()` method in it's standard library. [The Book](https://doc.rust-lang.org/book/ch02-00-guessing-game-tutorial.html#processing-a-guess) has some good examples of this.
 
 Now we have player input, we need to use it to update the state of the game.
 
