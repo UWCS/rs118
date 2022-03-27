@@ -28,7 +28,7 @@ You can add any other modules, for tests or anything else, anywhere you wish.
 
 The interpreter/CPU/virtual machine struct should look something like this:
 
-```rust
+```rust,noplayground
 pub struct VM {
     memory: [u8; 4096],
     pc: u16,
@@ -40,7 +40,7 @@ pub struct VM {
 
 Only a few of the fields you need are included here, you'll need to add a few more as you go, and you can represent them however you wish. The corresponding `new()` method should look like this:
 
-```rust
+```rust,noplayground
 impl VM {
     pub fn new() -> Self {
         Cpu {
@@ -60,7 +60,7 @@ Note how both the type and the function are `pub`, so the module above (main, th
 
 We implement the trait for the type like so
 
-```rust
+```rust,noplayground
 use chip8_base::Interpreter;
 
 impl Interpreter for VM {
@@ -85,7 +85,7 @@ Look at how the methods are capturing `self`. `step()` takes a mutable reference
 
 `main()` should look like this:
 
-```rust
+```rust,noplayground
 mod interpreter;
 use chip8_base::run;
 use interpreter::VM;
@@ -100,7 +100,7 @@ fn main() {
 
 The following return values don't do anything, and let the interpreter run without panics:
 
-```rust
+```rust,noplayground
 impl Interpreter for VM {
     fn step(&mut self, keys: &Keys) -> Option<Display> {
         None
@@ -122,7 +122,7 @@ impl Interpreter for VM {
 
 For a clock rate of 700Hz, you can create a `Duration` using `Duration::from_secs_f64(1_f64/700_f64)`. Don't hardcode this though. The "proper" way to do it is modify your `new()` method to accept a clock speed, then store the duration in the struct to return when requested.
 
-```rust
+```rust,noplayground
 impl VM {
     pub fn new(clock_speed: u32) -> Self {
         Self {
@@ -141,7 +141,7 @@ impl Interpreter for VM {
 
 ## Task 2.1
 
-```rust
+```rust,noplayground
 fn fetch(&mut self) -> u16 {
     let instruction = u16::from_be_bytes([
         self.memory[self.pc as usize],
@@ -162,7 +162,7 @@ There's lots of casting using `as usize` going on, because only a `usize` type c
 
 The `self.pc & 0xfff;` will wrap the program counter to 12 bits, discarding the upper nibble. Adding some debug calls too:
 
-```rust
+```rust,noplayground
 fn fetch(&mut self) -> u16 {
     dbg!(&self.pc);
     let instruction = u16::from_be_bytes([
@@ -182,7 +182,7 @@ We don't have to add any additional info to `dbg!()` because the expression and 
 
 First, we've written a helper method to break the `u16` instruction down into four nibbles:
 
-```rust
+```rust,noplayground
 //break a u16 into its nibbles
 fn nibbles(n: u16) -> (u8, u8, u8, u8) {
     let n3 = (n >> 12) as u8;
@@ -195,7 +195,7 @@ fn nibbles(n: u16) -> (u8, u8, u8, u8) {
 
 We can then match on this. Below shows NOP (`0000`), AND (`8xy2`) and RTS (`00EE`) implemented.
 
-```rust
+```rust,noplayground
 fn execute(&mut self, instruction: u16) {
     match nibbles(instruction) {
         (0,0,0,0) => () //NOP
@@ -210,7 +210,7 @@ Note how we can specify constants in the tuple for the pattern, and also variabl
 
 `step()` now looks like this:
 
-```rust
+```rust,noplayground
 fn step(&mut self, keys: &Keys) -> Option<Display> {
     let instruction = self.fetch();
     self.execute(instruction);
@@ -222,7 +222,7 @@ fn step(&mut self, keys: &Keys) -> Option<Display> {
 
 The execute function has been extended to implement the 6 instructions required:
 
-```rust
+```rust,noplayground
 fn execute(&mut self, instruction: u16) -> {
     //helpers that get variable length operands with some bit masking/casting
     let nnn: u16 = twelvebit(opcode);
@@ -280,7 +280,7 @@ A few things going on here:
 
 Here is a load function to load a rom into memory from disk:
 
-```rust
+```rust,noplayground
 pub fn load(mut self, filename: &str) -> std::io::Result<Self> {
     let program = std::fs::read(filename)?;
     self.memory[0x200..(0x200 + program.len())].copy_from_slice(&program);

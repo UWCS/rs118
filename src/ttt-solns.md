@@ -16,7 +16,7 @@ Exchange `code` for your editor of choice.
 
 You're looking for an enum:
 
-```rust
+```rust,noplayground
 #[derive(PartialEq, Eq, Copy, Clone)]
 enum Player {
     X,
@@ -34,7 +34,7 @@ Note that I've [`derive`](https://doc.rust-lang.org/book/ch05-02-example-structs
 
 There's a few different ways to go about this. You could use either a 2-d array, or 1-d array, whichever you prefer. The way I opted to use a 2-d array of `Option<Player>`, which represents either `Some(Player)`, or `None`, when the square is empty. I then wrapped that array in a struct, which also holds who's turn it currently is, and if there is currently a winner. This allows the struct to represent more the state of the entire game than just the board, but this is entirely up to you.
 
-```rust
+```rust,noplayground
 struct Board {
     grid: [[Option<Player>; 3]; 3],
     current_turn: Player,
@@ -44,7 +44,7 @@ struct Board {
 
 You could also opt to not hold the current player or winner in the struct, in which case a [type alias](https://doc.rust-lang.org/book/ch19-04-advanced-types.html?highlight=type%20alias#creating-type-synonyms-with-type-aliases) would make more sense.
 
-```rust
+```rust,noplayground
 type Board = [[Option<Player>; 3]; 3]
 ```
 
@@ -52,7 +52,7 @@ type Board = [[Option<Player>; 3]; 3]
 
 The `let mut` expression creates a new, mutable, instance of our `Board` struct from above. We then iterate through each square, adding in some decoration too.
 
-```rust
+```rust,noplayground
 let mut board = Board {
         grid: [[None, None, None], [None, None, None], [None, None, None]],
         current_turn: Player::X,
@@ -73,7 +73,7 @@ for row in board.grid {
 }
 ```
 
-will print:
+will print something like:
 
 ```
 -------------
@@ -87,7 +87,7 @@ will print:
 
 Note how we're using our `Player` enum within the `print!()` macro. This is because I manually implemented the `Display` trait on it:
 
-```rust
+```rust,noplayground
 impl Display for Player {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}",
@@ -102,7 +102,7 @@ impl Display for Player {
 
 This may look a little scary for now, because it is. Pattern matching on `Option<Player>` in the loop just as good:
 
-```rust
+```rust,noplayground
 println!("-------------");
 for row in board.grid {
     for square in row {
@@ -122,20 +122,20 @@ for row in board.grid {
 
 You'll need `std::io`, which is a module from Rust's standard library. Modules are imported in Rust using the `use` keyword, so something like:
 
-```rust
+```rust,noplayground
 use std::io::stdin;
 use std::io::stdout;
 ```
 
 will import those modules. You can also combine them if you want:
 
-```rust
+```rust,noplayground
 use std::io::{stdin, stdout};
 ```
 
 You could use a `while` loop, with a condition checking for winners, or a `loop` with a `break`. I opted for the latter approach.
 
-```rust
+```rust,noplayground
 fn main() {
     let mut board = Board {
         grid: [[None, None, None], [None, None, None], [None, None, None]],
@@ -178,7 +178,7 @@ Our board printing code is also included there at the bottom of the loop, but it
 
 The following snippet validates the input is a number, in the range of the board, in a blank square. It then adds the turn to the board if so.
 
-```rust
+```rust,noplayground
 let guess: Result<usize, _> = turn.trim().parse();
 
 if guess.is_err() {
@@ -201,7 +201,7 @@ We use one conditional expression to check if our parse function failed using `i
 
 We can just add a simple `match` expression at the bottom of our loop to switch turns.
 
-```rust
+```rust,noplayground
 board.current_turn = match board.current_turn {
     Player::O => Player::X,
     Player::X => Player::O,
@@ -212,7 +212,7 @@ Depending upon how your loop works you might need to put this somewhere else to 
 
 Our main function now looks like this. I added a little help text at the top to print at the start of the game, too!
 
-```rust
+```rust,noplayground
 fn main() {
     println!("tic tac toe!");
     println!("Board squares are numbered as follows:");
@@ -260,7 +260,7 @@ fn main() {
 
 This bit is a little more complicated. `Board.grid` is an array of `Option<Player>`, so we need to check that if each tile in the row is equal, and also that they are not all `None` values (done by the `is_some()` method). We check each row, each column, and also the two diagonals. If any of these checks end up storing a winner in `board.winner`, then the `match` at the bottom catches this and ends the game.
 
-```rust
+```rust,noplayground
 //check if we have any winners
 //check rows -- easily done
 for row in board.grid {
