@@ -233,6 +233,46 @@ pub fn colour(ray: &Ray) -> Colour {
 
 ## 4: Spheres
 
+### 4.1
+
+The entirety of `object.rs` is shown below. Pay careful attention to the quadratic formula in `hit`.
+
+```rust, noplayground
+use derive_more::Constructor;
+
+use crate::{ray::Ray, vector::Point};
+
+//a sphere
+#[derive(Debug, Constructor)]
+pub struct Sphere {
+    center: Point,
+    radius: f64,
+}
+
+//calculate ray-sphere intersection stuff
+impl Sphere {
+    pub fn hit(&self, ray: &Ray) -> bool {
+        let oc = ray.origin - self.center;
+        let a = ray.direction.dot(&ray.direction);
+        let b = 2.0 * oc.dot(&ray.direction);
+        let c = oc.dot(&oc) - self.radius * self.radius;
+        let discriminant = b * b - 4.0 * a * c;
+        discriminant >= 0.0
+    }
+}
+```
+
+This is the condition you want to add to your colour function too
+
+```rust, noplayground
+if object::Sphere::new(v!(0, 0, -1), 0.5).hit(ray) {
+    return v!(1, 0, 0);
+}
+
+```
+
+### 4.2
+
 ## 5: Surface Normals & Multiple Objects
 
 ## 6: Antialiasing

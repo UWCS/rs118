@@ -1,8 +1,10 @@
 # Raytracer Project
 
-For those of you not familiar with raytracing, it's a 3d graphics rendering technique that works by modelling light rays that's used becoming more common as a technique in modern gaming (thanks to NVIDIA). Ray tracing is a bit of an umbrella term, but what we're gonna build is technically a path tracer, and a fairly general one.
+For those of you not familiar with raytracing, it's a 3d graphics rendering technique that works by modelling light rays that's used becoming more common as a technique in modern gaming (thanks to NVIDIA). Ray tracing is a bit of an umbrella term, but what we're gonna build is technically a path tracer, and a fairly general one. You'll eventually end up with an image something like this:
 
-This tutorial is adapted from the excellent [_Ray Tracing in One Weekend_](https://raytracing.github.io/), amd also utilises all of the excellent illustrations from there. I've rewritten it from C++ to Rust, and also added a few other bits to hopefully make it more interesting and explore a few more bits of Rust. This is only an adaptation of the first book, so if you get to the end of this and want to explore more, the next two books are certainly worth a read, though you'll have to convert the C++ to Rust yourself (or do it in C++, which despite all it's problems is still widely used and a good skill to have).
+![](./img/final-render.png)
+
+This tutorial is adapted from the excellent [_Ray Tracing in One Weekend_](https://raytracing.github.io/), amd also utilises all of the excellent illustrations from there. I've rewritten it from C++ to Rust, and also added a few other bits to hopefully make it more interesting and explore a few more bits of Rust. This is only an adaptation of the first book, so if you get to the end of this and want to explore more, the next two books are certainly worth a read, though you'll have to [carcinise](https://en.wikipedia.org/wiki/Carcinisation) it yourself (or do it in C++, which despite all it's problems is still widely used and a good skill to have).
 
 There's a fair amount of vector maths involved here but don't let that intimidate you. I'll try to explain it all well enough that you don't need a maths degree to follow whats going on.
 
@@ -47,7 +49,7 @@ This is a of the graphics "Hello World", because once we have an image we can do
 
 ## 2: Vectors
 
-Almost all graphics programs have some data structures for storing geometric vectors and colors. In many systems these vectors are 4D (3D plus a homogeneous coordinate for geometry, and RGB plus an alpha transparency channel for colors). For our purposes, three coordinates suffices. We’ll use the same struct `Vec3` for colors, locations, directions, offsets, whatever. Some people don’t like this because it doesn’t prevent you from doing something silly, like adding a color to a location. They have a good point, and we could enforce this through Rust's type system, but we're going to not for now because it adds a lot of complexity. We will create some type aliases `Colour` and `Point`, though, to make our types a little more descriptive.
+Almost all graphics programs have some data structures for storing geometric vectors and colors. In many systems these vectors are 4D (3D plus a homogeneous coordinate for geometry, and RGB plus an alpha transparency channel for colors). For our purposes, three coordinates is just fine. We’ll use the same struct `Vec3` for colors, locations, directions, offsets, whatever. Some people don’t like this because it doesn’t prevent you from doing something silly, like adding a color to a location. They have a good point, and we could enforce this through Rust's type system, but we're going to not for now because it adds a lot of complexity. We will create some type aliases `Colour` and `Point`, though, to make our types a little more descriptive.
 
 ### Task 2.1
 
@@ -155,16 +157,16 @@ Create a new `ray` module. Create a new struct in it that stores the origin `Poi
 
 Now we have rays, we can finally trace some. The basic concept is that the ray tracer casts rays from a "camera" and through each pixel, calculating the colour of each pixel. Like light, but in reverse. We'll start with a simple camera defined with a few basic parameters, and a `ray::colour` function that computes the colour of a ray.
 
-Our basic image will use a 16:9 aspect ratio, because it's common, and because with a square image its easy to introduce bugs by accidentally transposing `x` and `y`. We'll also set up a virtual viewport that our rays will pass through into our scene, that will be two units wide and one unit away from the camera. The camera will be at $(0, 0, 0)$, with the `y` axis going up and `x` to the left. To respect the convention of a right handed coordinate system, into the screen is the negative z-axis. We will traverse the screen from the upper left hand corner, and use two offset vectors $\textbf u$ and $\textbf v$ along the screen sides to move the ray across the screen.
+Our basic image will use a 16:9 aspect ratio, because it's common, and because with a square image its easy to introduce bugs by accidentally transposing `x` and `y`. We'll also set up a virtual viewport that our rays will pass through into our scene, that will be two units wide and one unit away from the camera. The camera will be at $(0, 0, 0)$, with the `y` axis going up and `x` to the left. To respect the convention of a right handed coordinate system, into the screen is the negative z-axis. We will traverse the screen from the upper left hand corner, and use two offset vectors $\mathbf u$ and $\mathbf v$ along the screen sides to move the ray across the screen.
 
 ![](https://raytracing.github.io/images/fig-1.03-cam-geom.jpg)
 
 - Define your aspect ratio as `16/9`, your width as 400, and your height accordingly.
 - The viewport height should be `2.0`, and width should be set accordingly in line with the aspect ratio.
 - The focal length should be `1.0`
-- Looking at the diagram above, we can see that the top left corner lies at $\textbf O - \textbf x /2 + \textbf y/2 - \textbf f$
-  - $\textbf x$ and $\textbf y$ are your image height and width vectors
-  - $\textbf f$ is your focal length vector
+- Looking at the diagram above, we can see that the top left corner lies at $\mathbf O - \mathbf x /2 + \mathbf y/2 - \mathbf f$
+  - $\mathbf x$ and $\mathbf y$ are your image height and width vectors
+  - $\mathbf f$ is your focal length vector
 
 Write a `colour(&Ray) -> Colour` function that just always returns `v!(0, 1.0, 0)` for now, we'll add a nice pattern later. Update your loop in your `main` function to calculate the direction vector of the ray to cast on each iteration based on `i` and `j`, and then create a ray starting at the origin and going into the pixel. You can do this by scaling your pixel coordinate from 0 to 1, and then multiplying by your height and width vectors. Colour your ray and save the pixel value to the buffer calling `Vec3::to_rgb` to convert your colour from 0-1 from 0-255.
 
@@ -180,23 +182,114 @@ If your colours don't look similar, or it's upside down, check your geometry is 
 
 ## 4: Spheres
 
-Spheres are often used in raytracers because its fairly easy to work out if a ray has hit one or not. The equation for a sphere
+Spheres are often used in raytracers because its fairly easy to work out if a ray has hit one or not. The equation for a sphere centred at the origin with radius $r$ is:
+
+$$
+x^2 + y^2 + z^2 = r^2
+$$
+
+This means that for any given point $(x, y, z)$, if it is $r$ distance from the origin, the equation will be satisfied. If the sphere is at centre $(C_x, C_y, C_z)$, then the equation gets uglier:
+
+$$
+(x - C_x)^2 + (y - C_y)^2 + (z - C_z)^2 = r^2
+$$
+
+We need to get our equation in terms of vectors instead of individual coordinates to work with them in a graphics context. Using $\mathbf P = (x, y, z)$ and $\mathbf C = (C_x, C_y, C_z)$, the vector from $\mathbf C$ to $\mathbf R$ is $(\mathbf P - \mathbf C)$, so the equation of our sphere in vector form is:
+
+$$
+(\mathbf P - \mathbf C) \cdot (\mathbf P - \mathbf C) = r^2
+$$
+
+We want to know if our ray $\mathbf P(t)$ ever hits the sphere. We're looking for some $t$ where the following is true:
+
+$$
+(\mathbf P(t) - \mathbf C) \cdot (\mathbf P(t) - \mathbf C) = r^2
+$$
+
+$$
+(\mathbf A + t \mathbf b - \mathbf C) \cdot (\mathbf A + t \mathbf b - \mathbf C) = r^2
+$$
+
+A little vector algebra and we have:
+
+$$
+t^2 \mathbf b \cdot \mathbf b + 2t \mathbf b \cdot (\mathbf A - \mathbf C) + (\mathbf A - \mathbf C) \cdot (\mathbf A - \mathbf C) - r^2 = 0
+$$
+
+The only unknown in that equation is $t$, so we have a quadratic. We can use everyone's favourite, the quadratic formula, to find a solution.
+
+$$
+t = \frac{-b \pm \sqrt{b^2 - 4ac}}{2a}
+$$
+
+$$
+a = \mathbf b \cdot \mathbf b
+$$
+
+$$
+b = 2 \mathbf b \cdot (\mathbf A - \mathbf C)
+$$
+
+$$
+c = (\mathbf A - \mathbf C) \cdot (\mathbf A - \mathbf C) - r^2
+$$
+
+There are three possible cases, which the determinant of the formula (the $b^2 - 4ac$ bit), will tell us:
+
+![](https://raytracing.github.io/images/fig-1.04-ray-sphere.jpg)
+
+Empowered with some A-level linear algebra, we can go forth and draw balls.
 
 ### 4.1
 
-the image
+Create another file `object.rs` that will contain code to do with objects. In there, create a new struct Sphere that holds the centre point and radius. Derive a constructor for it. Implement a method `hit` that takes a ray as an argument, and returns `true` if there is at least one intersection, and false otherwise.
 
-### 4.3
+Add a call to `Sphere::hit` in your `ray::colour` function, checking for intersection with a sphere with radius `0.5` centred on `(0, 0, -1)`. If there is a hit, return red instead of our usually lovely lerp background from earlier. The result:
 
-rayon
+![](./img/4-1.png)
 
-### 4.4
+You have a basic ray tracer that can calculate intersections, congrats! This has zero bells and/or whistles so far, but we'll get to shading and reflection later on.
 
-indicatif
+### 4.2
+
+How long did that take to execute on your machine? You might notice the raytracer starting to chung from here on out, because its doing a lot of maths, and it'll start to do a lot lot more maths as we add more code. This is technically what GPUs are for, but that's a whole other rabbit hole. We can do a few things to increase performance though. Introducing, my favourite crate: [`Rayon`](https://github.com/rayon-rs/rayon).
+
+Rayon is a data parallelism library, that works by converting your iterators to parallel iterators, and then distributing work accross all the cores in your system. We're going to re-write our main rendering loop as an iterator, and then drop rayon in to make it (hopefully, depending on how many cores you have) a lot faster.
+
+Where we are using for loops, we generally convert them to iterators using the [`for_each`](https://doc.rust-lang.org/stable/std/iter/trait.Iterator.html#method.for_each) adaptor, which just calls a closure on each item of an iterator. The two examples below are equivalent.
+
+```rust
+for x in 0..10_u32 {
+    //loop body
+    let y = f64::sqrt(x.into());
+    println!("sqrt(x) = {y}");
+}
+```
+
+to:
+
+```rust
+(0..10_u32).for_each(|x| {
+    //the same loop body
+    //loop body
+    let y = f64::sqrt(x.into());
+    println!("sqrt(x) = {y}");
+})
+```
+
+Convert your rendering loop in `main` to use `for_each`. Then, import Rayon's prelude with `use rayon::prelude::*`, and add a call to [`par_bridge`](https://docs.rs/rayon/latest/rayon/iter/trait.ParallelBridge.html#tymethod.par_bridge) before your `for_each` to use Rayon's parallel bridge to parallelise your iterator. Run your code to make sure nothing is broken, and you should notice a speedup.
+
+Another easy way to get free speed is to run in release mode. Instead of just `cargo run`, doing `cargo run --release` will compile your code with optimisations and no debug symbols to help speed it up, at the cost of longer compile times.
+
+There are more efficient ways to utilise rayon than this (notably `par_bridge` is not as performant than regular parallel iterators), and additional optimisations that can be enabled in rustc. I encourage you to play around with it and experiment to see what makes the renderer fastest.
 
 ## 5: Surface Normals & Multiple Objects
 
 ## 6: Antialiasing
+
+## 6.x
+
+indicatif comes in here I think
 
 ## 7: Diffuse Materials
 
