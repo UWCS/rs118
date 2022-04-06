@@ -1,5 +1,7 @@
 # Summary
 
+[Introduction ](./intro.md)
+
 - [Part 1 - Hello, Ferris!](./1.md)
 - [Tic Tac Toe Project](./ttt.md)
   - [Solutions](./ttt-solns.md)
