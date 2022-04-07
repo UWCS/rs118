@@ -4,11 +4,11 @@ For those of you not familiar with raytracing, it's a 3d graphics rendering tech
 
 ![](./img/final-render.png)
 
-This tutorial is adapted from the excellent [_Ray Tracing in One Weekend_](https://raytracing.github.io/), amd also utilises all of the excellent illustrations from there. I've rewritten it from C++ to Rust, and also added a few other bits to hopefully make it more interesting and explore a few more bits of Rust. This is only an adaptation of the first book, so if you get to the end of this and want to explore more, the next two books are certainly worth a read, though you'll have to [carcinise](https://en.wikipedia.org/wiki/Carcinisation) it yourself (or do it in C++, which despite all it's problems is still widely used and a good skill to have).
+This tutorial is adapted from the excellent [_Ray Tracing in One Weekend_](https://raytracing.github.io/), amd also utilises some of the really helpful illustrations from there. I've rewritten it from C++ to Rust, and also added a few other bits to hopefully make it more interesting and explore a few more bits of Rust. This is only an adaptation of the first book, so if you get to the end of this and want to explore more, the next two books are certainly worth a read, though you'll have to [carcinise](https://en.wikipedia.org/wiki/Carcinisation) it yourself (or do it in C++, which despite all it's problems is still widely used and a good skill to have).
 
 There's a fair amount of vector maths involved here but don't let that intimidate you. I'll try to explain it all well enough that you don't need a maths degree to follow whats going on.
 
-Also, unlike the original book and like the previous project, I'm not going to give you the code snippets as we go. Feel free to take a look at the solutions if you get stuck, but try to solve the tasks yourself as you'll find it much more rewarding. Remember to make use of your resources!
+Also, unlike the original book, I'm not going to give you the code snippets as we go because you'll just copy and paste them. Feel free to take a look at the solutions if you get stuck, but try to solve the tasks yourself as you'll find it much more rewarding. Remember to make use of your resources!
 
 ## 1: Images
 
@@ -45,11 +45,11 @@ Red will fade from 0 to 1 left to right, and green will fade in from top to bott
 
 ![](./img/1-2.png)
 
-This is a of the graphics "Hello World", because once we have an image we can do what we want with it.
+This is a sort of graphics "Hello World", because once we have an image we can do what we want with it.
 
 ## 2: Vectors
 
-Almost all graphics programs have some data structures for storing geometric vectors and colors. In many systems these vectors are 4D (3D plus a homogeneous coordinate for geometry, and RGB plus an alpha transparency channel for colors). For our purposes, three coordinates is just fine. We’ll use the same struct `Vec3` for colors, locations, directions, offsets, whatever. Some people don’t like this because it doesn’t prevent you from doing something silly, like adding a color to a location. They have a good point, and we could enforce this through Rust's type system, but we're going to not for now because it adds a lot of complexity. We will create some type aliases `Colour` and `Point`, though, to make our types a little more descriptive.
+Almost all graphics programs have some data structures for storing geometric vectors and colors. In many systems these vectors are 4D (3D plus a homogeneous coordinate for geometry, and RGB plus an alpha transparency channel for colors). For our purposes, three coordinates is just fine. We’ll use the same struct `Vec3` for colors, locations, directions, offsets, whatever. Some people don’t like this because it doesn’t prevent you from doing something silly, like adding a color to a location. They have a good point, and we could enforce this through Rust's type system, but we're going to not for now because it adds a lot of complexity. We will create some type aliases `Colour` and `Point`, though, to make our types a little more descriptive where possible.
 
 ### Task 2.1
 
@@ -57,9 +57,9 @@ Our `Vec3` will require a few methods to make it useful in graphics applications
 
 - [Dot](https://www.mathsisfun.com/algebra/vectors-dot-product.html) and [cross](https://www.mathsisfun.com/algebra/vectors-cross-product.html) products
 - A `len()` method, to get it's magnitude
-- A `normalise()` method, to convert a vector to a vector with the same direction but magnitude 1.
+- A `normalise()` method, to scale a vector to unity magnitude.
 - A `to_rgb()` method that converts a vector with all all 0.0-1.0 values to an `image::Rgb`.
-- A `map()` method, that applies a function to each element of the vector, consuming it and returning a new vector.
+- A `map()` method, that applies a function to each element of the vector, consuming it and returning a new vector, similar to the `map()` method for arrays.
 
 Create a new `vector.rs` file, and include it in the module tree with a `mod vector;` statement in main. Then create a simple struct, `Vec3`, with three `f64` fields: x, y, z. Then, implement all these methods on it. Start with `dot()` and `len()`, then try `cross()`. Do `map()` next, as you can use it to then implement `to_rgb()` and `normalise()`. Look at the docs for [std::array::map](https://doc.rust-lang.org/std/primitive.array.html#method.map) for help with your map implementation, you want to take some function as an argument, and apply it to all 3 elements in your vector.
 
@@ -67,7 +67,7 @@ Add two type aliases `pub type Colour = Vec3` and `pub type Point = Vec3` too, Y
 
 ### Task 2.2
 
-We'll also want to overload some operators. Operator overloading allows operators to be overloaded to work on custom types, which is done in Rust by implementing the [`std::ops`](https://doc.rust-lang.org/std/ops/index.html) traits. You want to be able to:
+We'll also want to overload some operators. Operator overloading allows operators to be implemented to work on custom types, which is done in Rust by implementing the [`std::ops`](https://doc.rust-lang.org/std/ops/index.html) traits. You want to be able to:
 
 - Add two vectors
 - Subtract two vectors
@@ -86,9 +86,9 @@ There's also one or two cases where we want to multiply a vector by another vect
 
 ### Task 2.3
 
-We're gonna take a quick foray down the rabbit hole that is Rust macros to create a ~~dirty hack~~ shorthand for initialising new vectors, since we're going to be doing an awful lot of it. I recommend having a read through [this blog post](https://blog.logrocket.com/macros-in-rust-a-tutorial-with-examples/), and some of the [Rust by Example](https://doc.rust-lang.org/rust-by-example/macros.html) chapter, then I'll walk you through it.
+We're gonna take a quick adventure down the rabbit hole that is Rust macros to create a ~~dirty hack~~ shorthand for initialising new vectors, since we're going to be doing an awful lot of it. I recommend having a read through [this blog post](https://blog.logrocket.com/macros-in-rust-a-tutorial-with-examples/), and some of the [Rust by Example](https://doc.rust-lang.org/rust-by-example/macros.html) chapter, then I'll walk you through it.
 
-Declarative macros are just functions that operate on syntax by pattern matching. Our macro is declared using `macro_rules!`, and we'll call it `v!` (because its for vectors).
+Declarative macros are just functions that operate on syntax. Our macro is declared using `macro_rules!`, and we'll call it `v!` (because its for vectors).
 
 ```rust
 macro_rules v! {
@@ -96,7 +96,7 @@ macro_rules v! {
 }
 ```
 
-Patterns are declared using syntax similar to `match`: `() => {}`. The macro matches on the pattern in the parentheses, and then the macro will expand to the code in the braces. In the parentheses goes the arguments to the macrom, which are Rust syntax items, specified like `$x: ty`, where `$x` is the name of the token, and `ty` is the type of the token. Theres a few kinds of tokens, but we'll just use `expr` for now, which covers any expression.
+The arguments are declared using syntax similar to `match`: `() => {}`. The macro matches on the pattern in the parentheses, and then expands to the code in the braces. In the parentheses goes the arguments to the macrom, which are Rust syntax items, specified like `$x: ty`, where `$x` is the name of the token, and `ty` is the type of the syntax token. Theres a few kinds of tokens, but we'll just use `expr` for now, which matches any expression, which most things are in rust.
 
 ```rust
 macro_rules v! {
@@ -143,7 +143,7 @@ All ray tracers need some data type to represent rays. Think of a ray of a funct
 
 - $\mathbf P$ is a position on a line in 3 dimensions
 - $\mathbf A$ is the ray origin
-- $\mathbf B$ is the direction the ray is pointing
+- $\mathbf b$ is the direction the ray is pointing
 
 Using this, you can plug in a different parameter `t` to get a position anywhere on the line/ray.
 
@@ -162,19 +162,19 @@ Our basic image will use a 16:9 aspect ratio, because it's common, and because w
 ![](https://raytracing.github.io/images/fig-1.03-cam-geom.jpg)
 
 - Define your aspect ratio as `16/9`, your width as 400, and your height accordingly.
-- The viewport height should be `2.0`, and width should be set accordingly in line with the aspect ratio.
-- The focal length should be `1.0`
+- The viewport height should be 2, and width should be set accordingly as per the aspect ratio.
+- The focal length should be 1
 - Looking at the diagram above, we can see that the top left corner lies at $\mathbf O - \mathbf x /2 + \mathbf y/2 - \mathbf f$
   - $\mathbf x$ and $\mathbf y$ are your image height and width vectors
   - $\mathbf f$ is your focal length vector
 
-Write a `colour(&Ray) -> Colour` function that just always returns `v!(0, 1.0, 0)` for now, we'll add a nice pattern later. Update your loop in your `main` function to calculate the direction vector of the ray to cast on each iteration based on `i` and `j`, and then create a ray starting at the origin and going into the pixel. You can do this by scaling your pixel coordinate from 0 to 1, and then multiplying by your height and width vectors. Colour your ray and save the pixel value to the buffer calling `Vec3::to_rgb` to convert your colour from 0-1 from 0-255.
+Write a `colour(&Ray) -> Colour` function that just always returns `v!(0, 1.0, 0)` for now, we'll add a nice pattern later. Update your loop in your `main` function to calculate the direction vector of the ray to cast on each iteration based on `i` and `j`, and then create a ray starting at the origin and going into the pixel. You can do this by scaling your pixel coordinate from 0 to 1, and then multiplying by your height and width vectors. Colour your ray and save the pixel value to the buffer calling `Vec3::to_rgb` to convert your colour from 0-1 from 0-255. Take care to get your signs right here so your vectors are all going in the same direction.
 
 You should get a nice green rectangle. I appreciate theres a lot going on there, so ask for help or take a look at the solutions if you're not sure.
 
 ### 3.3
 
-To make the background for our raytraced image, we're gonna add add a nice blue-white blend. In your colour function, add code to normalise the ray's direction vector, then scale it from $0 \leq t \leq 1$ from $-1 \leq t \leq 1$. We're then gonna do a neat graphics trick called a lerp, or linear interpolation, where we blend two colours: `blended_value = (1-t) * start_value + t * end_value`. Use `v!(1)` for your starting colour, `v!(0.5, 0.7, 1.0)` for your end colour, and blend based upon the y coordinate. You should end up with something like:
+To make the background for our raytraced image, we're gonna add add a nice blue-white gradient. In your colour function, add code to normalise the ray's direction vector, then scale it from $0 \leq t \leq 1$ from $-1 \leq t \leq 1$. We're then gonna do a neat graphics trick called a lerp, or linear interpolation, where we blend two colours: `blended_value = (1-t) * start_value + t * end_value`. Use white for your starting colour, a nice `(0.5, 0.7, 1.0)` blue for your end colour, and blend based upon the y coordinate. You should end up with something like:
 
 ![](./img/3-3.png)
 
@@ -242,7 +242,7 @@ Empowered with some A-level linear algebra, we can go forth and draw balls.
 
 ### 4.1
 
-Create another file `object.rs` that will contain code to do with objects. In there, create a new struct Sphere that holds the centre point and radius. Derive a constructor for it. Implement a method `hit` that takes a ray as an argument, and returns `true` if there is at least one intersection, and false otherwise.
+Create another file `object.rs` that will contain code to do with objects. In there, create a new struct `Sphere` that holds the centre point and radius. Derive a constructor for it. Implement a method `hit` that takes a ray as an argument, and returns `true` if there is at least one intersection, and false otherwise.
 
 Add a call to `Sphere::hit` in your `ray::colour` function, checking for intersection with a sphere with radius `0.5` centred on `(0, 0, -1)`. If there is a hit, return red instead of our usually lovely lerp background from earlier. The result:
 
@@ -271,7 +271,6 @@ to:
 ```rust
 (0..10_u32).for_each(|x| {
     //the same loop body
-    //loop body
     let y = f64::sqrt(x.into());
     println!("sqrt(x) = {y}");
 })
@@ -284,6 +283,77 @@ Another easy way to get free speed is to run in release mode. Instead of just `c
 There are more efficient ways to utilise rayon than this (notably `par_bridge` is not as performant than regular parallel iterators), and additional optimisations that can be enabled in rustc. I encourage you to play around with it and experiment to see what makes the renderer fastest.
 
 ## 5: Surface Normals & Multiple Objects
+
+### Task 5.1
+
+A surface normal is a vector that is perpendicular to the surface of an object. You, stood up, are a surface normal to the planet earth. To be able to shade our sphere, we need to know the surface normal at the point where the ray intersects with the sphere.
+
+![](https://raytracing.github.io/images/fig-1.05-sphere-normal.jpg)
+
+We'll normalise our normals (make them unit vectors), and visualise them using a colour map, scaling the vector elements from the range $-1 \leq x \leq 1$ to $0 \leq x \leq 1$. This means we need to do two things.
+
+First, change your hit function to return the solution to the quadratic equation if the ray and sphere intersect, and return nothing if the ray misses.
+
+Next, re-write your colour function to do the following:
+
+- Check if the ray and sphere intersect
+  - If they do, use the `Ray::at()` function from earlier to find the exact point $P$ where, and then find the surface normal using $P - C$
+    - Normalise the surface normal and scale it to the range $0 \leq x \leq 1$
+    - Return this as a colour to shade your sphere
+  - If they do not, then just return then same background colour as before
+
+You should get this lovely image of a shaded sphere:
+
+![](./img/5-1.png)
+
+### Task 5.2
+
+One sphere is boring, lets have some more. And more than just spheres too! Let's create a trait to represent objects so we can easily extend our raytracer with whatever we want. The `Object` trait will contain our `hit()` function, so any shape/object/thing can then implement it to be able to tell us if a ray has hit it or not.
+
+We'll extend the `hit()` function a bit here to, to be something more like `fn hit(&self, ray: &Ray, bounds: (f64, f64)) -> Option<Hit>`. The `bounds` will specify valid bounds for the parameter `t` (the solution of our quadratic equation) to lie in, and
+the `Hit` struct will bundle some more detailed information about a ray-object intersection. `Hit` will include:
+
+- The `Point` where the intersection is
+- The surface normal
+- The parameter `t`
+
+Create the `Hit` struct, add the `Object` trait with it's one function, and then implement it for `Sphere`. The old `Sphere::hit()` can go, as the new and improved `Sphere::hit()` should be part of the `Object` impl. You still need to determine if there is an intersection or not using the same calculations as before, but you'll now need to do some additional maths to find the closest of the two roots that is in within the bounds given. Calculate the surface normal and the intersection point here too, and return it all in the `Hit` struct. If there is no intersection, continue to return `None`.
+
+Update your colour function to use the `Object` trait implementation of `Sphere::hit`. Put the bounds as $0 < x < \infty$ for now, so all intersections in front of the camera are valid. Also update it to deal with the new return type, but doing the same thing as before, shading based upon the normal. Make sure there's no change from the last task so you know everything is working.
+
+### Task 5.3
+
+We need to talk about surface normals again. The normal can either point outside the sphere, or be negated and point inside. The normal we're finding at the moment will always point against whichever side the ray hits from (rays will start to hit spheres on the inside when we get to glass). We need to know which side a ray hits from, and also need to introduce some consistency in which direction normals point.
+
+![](https://raytracing.github.io/images/fig-1.06-normal-sides.jpg)
+
+To make this as easy as possible, we're going to make normals always point outward, and then store in the `Hit` struct which side of the object the ray hit. Add a boolean field called `front_face` to the struct, that will be `true` when the ray hits the outer surface, and `false` when it hits the inner surface.
+
+The normalised outer surface normal can be calculated by $(P - C)  * \frac{1}{r}$. We can then use a property of the dot product to detect which side the ray hit from:
+
+$$
+\frac{\mathbf x \cdot \mathbf y}{ |\mathbf x||\mathbf y| } = \cos \theta
+$$
+
+Where $\theta$ is the angle between the two vectors. This means that if the dot product of two vectors is 0, they are perpendicular. If the product is positive the two are at angles of less than 90 degrees, and if negative they lie at angles of between 0 and 180 degrees. So, if `ray.direction.dot(outward_normal) > 0`, then we need to invert our normal, and set `front_face` to false.
+
+Implement this logic in your code, making sure that `front_face` is always true to begin with. If there's any bugs in your implementation you might not catch them all now, so double and triple check your maths.
+
+### Task 5.4
+
+We have implemented `Object` for `Sphere`, but what about multiple spheres? We don't want to check _every_ object for intersection for each ray, so we're going to implement `Object` for a list of `Objects`. Well how is that going to work, can you implement a trait for a list of itself? Yes, you can. We're going to use [trait objects](https://doc.rust-lang.org/book/ch17-02-trait-objects.html). Trait objects are pointers to types, where the only thing known about that type is that it implements a specific trait. If you're familiar with dynamic dispatch, this is dynamic dispatch in Rust. We can create a `Vec<dyn Object>`, which Rust reads as "a list of items which all implement `Object`, and I don't care about the type of them beyond that".
+
+Create a type alias for an entire scene as `pub type Scene = Vec<dyn Object>`. The compiler is now probably throwing you an error. We don't know what the size of `dyn Object` is at compile time, so we can't just put it into a `Vec` so easily. We need to put all our types in boxes, which are smart pointers that work with data of unknown size on the heap. If you haven't figured it out already, what you actually want is `Vec<Box<dyn Object>>`.
+
+Now we have the type nailed down, implement `Object for Scene`. The idea is you return the `Hit` that is closest to the camera, so the one with the smallest `t`. Being able to do this provides some nice abstraction, as we can just check if the ray intersects anywhere in the scene, and get back the `Hit` for the closest object, which is the one the ray actually wants to hit.
+
+The code you wrote using rayon earlier might be complaining now. Rust is very strict about what types can work with multithreaded code, which it enforces though the [Send and Sync traits](https://doc.rust-lang.org/book/ch16-04-extensible-concurrency-sync-and-send.html). Rust doesn't know for sure that a `dyn Object` is safe to share between threads, so we need to add a `Sync` bound on our type signature to tell the compiler that everything in this list should be an `Object`, but also `Sync`. All our types implementing `Object` will automatically be `Sync`, so we don't need to worry about this beyond letting the compiler and rayon know we have everything under control. Change your type signature again to be `Vec<Box<dyn Object + Sync>>`, and that should shut the compiler up.5
+
+### Task 5.5
+
+In main, add another sphere at `(0, -100.5, -1)` with radius 100, and then add both your spheres into a `Vec` to create a `Scene`. Change your colour function to take anything that implements `Object` (use generics or `impl` syntax for this, not trait objects again), and you should end up with something like this:
+
+![](./img/5-5.png)
 
 ## 6: Antialiasing
 
