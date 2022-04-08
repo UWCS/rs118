@@ -21,7 +21,11 @@ jobs:
         with:
           mdbook-version: 'latest'
           
+      # install katex preprocessor
+      - run : cargo install mdbook-katex
+      # build book    
       - run : mdbook build
+      
       - name: Deploy
         uses: peaceiris/actions-gh-pages@v3
         with:
