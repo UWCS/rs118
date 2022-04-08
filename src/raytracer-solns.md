@@ -445,7 +445,7 @@ let objects: Scene = vec![
 
 We then pass this to `ray::colour`, which is updated as shown:
 
-````rust, noplayground
+```rust, noplayground
 pub fn colour(scene: &impl Object, ray: &Ray) -> Colour {
     if let Some(hit) = scene.hit(ray, (0.0, f64::INFINITY)) {
         (hit.normal + v!(1)) / 2.0
@@ -465,6 +465,27 @@ pub fn colour(scene: &impl Object, ray: &Ray) -> Colour {
 
 ## 6: Antialiasing
 
+### 6.1
+
+Pay careful attention to where the randomness is added here. Note also how the colour is not accumulated into an `RGB` type, but one of our own `Vec3` types, and then converted to rgb at the last stage. The body of the updated rendering loop:
+
+```rust, noplayground
+//colour is a vector
+let mut colour = v!(0);
+for _ in 0..samples {
+    //randomness here
+    let u = (i as f64 + rand::random::<f64>()) / (img_width - 1) as f64;
+    let v = (j as f64 + rand::random::<f64>()) / (img_height - 1) as f64;
+
+    let ray_direction: Vec3 = top_left + u * horizontal + v * vertical - origin;
+    colour = colour + ray::colour(&objects, &Ray::new(origin, ray_direction));
+}
+//save pixel colour to buffer
+*px = (colour / (samples as f64)).to_rgb(); //convert to RGB here
+```
+
+You could also draw the entire scene 100 times and average those out if you wanted, but it might require a bit more work to implement so this is the easy route.
+
 ## 7: Diffuse Materials
 
 ## 8: Metal
@@ -474,9 +495,3 @@ pub fn colour(scene: &impl Object, ray: &Ray) -> Colour {
 ## 10: Positionable Camera
 
 ## 11: Defocus Blur
-
-````
-
-```
-
-```

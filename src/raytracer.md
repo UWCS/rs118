@@ -361,7 +361,23 @@ Note how the top of our little sphere is a similar colour to the top of our big 
 
 ## 6: Antialiasing
 
-## 6.x
+You might have noticed the slightly jagged edges on your sphere. This isn't the case with real cameras, because the edge pixels are a blend of the foreground and background. To achieve this, we're going to add antialiasing, which we'll acheive by taking multiple samples of each pixel and averaging them out.
+
+### 6.1
+
+So that each sample isn't identical, we're going to slightly randomise the ray directions within each pixel, for which we will use our old friend, the `rand` crate. Add it to your package manifest. `rand::random::<T>()` is a generic function that will return a random `T`. In case of floats, `rand::random::<f64>()` returns a random number $0 \leq x < 1$.
+
+In your main rendering loop, add a slight randomness to your ray direction by adding a random float to your _pixel_ coordinate. Don't add it to your ray direction, add it _before_ you divide by image size. This detail is important otherwise you'll be casting rays all over the place and your render will be totally fucked.
+
+Add a variable `let samples = n` to the top of `main`. Update the render loop to take `n` random samples of each pixel, and then set the final pixel colour to the average of the `n` samples. Your render should be the same, but with less jagged edges. Zoom in around the edge of the sphere and you should notice the effect. Use `n=100` samples for now, but don't hardcode this in your loop.
+
+![](./img/6-1.png)
+
+### 6.2
+
+camera stuff
+
+## 6.3
 
 indicatif comes in here I think
 
@@ -376,7 +392,3 @@ indicatif comes in here I think
 ## 11: Defocus Blur
 
 ## What next?
-
-```
-
-```
