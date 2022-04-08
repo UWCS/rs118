@@ -335,9 +335,11 @@ $$
 \frac{\mathbf x \cdot \mathbf y}{ |\mathbf x||\mathbf y| } = \cos \theta
 $$
 
-Where $\theta$ is the angle between the two vectors. This means that if the dot product of two vectors is 0, they are perpendicular. If the product is positive the two are at angles of less than 90 degrees, and if negative they lie at angles of between 0 and 180 degrees. So, if `ray.direction.dot(outward_normal) > 0`, then we need to invert our normal, and set `front_face` to false.
+Where $\theta$ is the angle between the two vectors joined tip-to-tip. This means that if the dot product of two vectors is 0, they are perpendicular. If the product is positive the two are at angles of less than 90 degrees, and if negative they lie at angles of between 90 and 180 degrees. So, if `ray.direction.dot(outward_normal) > 0`, then the ray has hit from the inside and we need to invert our normal and set `front_face` to false.
 
-Implement this logic in your code, making sure that `front_face` is always true to begin with. If there's any bugs in your implementation you might not catch them all now, so double and triple check your maths.
+![](EXTRA DRAWING)
+
+Implement this logic in your code, making sure that in the current render `front_face` is always true. If there's any bugs in your implementation you might not catch them all now because we have no cases where `front_face` is false yet, so double and triple check your maths. You could shuffle the sphere and camera positions around to put the camera _inside_ the sphere, and see what your results look like.
 
 ### Task 5.4
 
@@ -354,6 +356,8 @@ The code you wrote using rayon earlier might be complaining now. Rust is very st
 In main, add another sphere at `(0, -100.5, -1)` with radius 100, and then add both your spheres into a `Vec` to create a `Scene`. Change your colour function to take anything that implements `Object` (use generics or `impl` syntax for this, not trait objects again), and you should end up with something like this:
 
 ![](./img/5-5.png)
+
+Note how the top of our little sphere is a similar colour to the top of our big sphere? It's because the ray is hitting them at similar angles, so the surface normal is similar.
 
 ## 6: Antialiasing
 

@@ -273,7 +273,195 @@ if object::Sphere::new(v!(0, 0, -1), 0.5).hit(ray) {
 
 ### 4.2
 
+Your new parallel `for_each` iterator:
+
+```rust, noplayground
+buffer.enumerate_pixels_mut() //create the iterator over the buffer
+    .par_bridge() // bridge it to a parallel iterator
+    .for_each(|(i, j, px)| { //for each item in the iterator, execute this closure
+        //loop body is unchanged
+    }
+```
+
+If you're still really struggling with performance, ask someone to have a look over your code with you and we'll see if theres anything else we can do to speed it up.
+
 ## 5: Surface Normals & Multiple Objects
+
+### 5.1
+
+The updated `Sphere::hit()` method:
+
+```rust, noplayground
+impl Sphere {
+    pub fn hit(&self, ray: &Ray) -> Option<f64> {
+        let oc = ray.origin - self.center;
+        let a = ray.direction.dot(&ray.direction);
+        let b = 2.0 * oc.dot(&ray.direction);
+        let c = oc.dot(&oc) - self.radius * self.radius;
+        let discriminant = b * b - 4.0 * a * c;
+        if discriminant < 0.0 {
+            None
+        } else {
+            Some((-b - discriminant.sqrt()) / (a * 2.0))
+        }
+    }
+}
+```
+
+And `Ray::colour()`:
+
+```rust, noplayground
+pub fn colour(ray: &Ray) -> Colour {
+    //if the sphere and ray return Some(t)
+    if let Some(t) = object::Sphere::new(v!(0, 0, -1), 0.5).hit(ray) {
+        //calculate normal, scale and return it
+        let normal = (ray.at(t) - v!(0, 0, -1)).normalise();
+        (normal + v!(1)) / 2.0
+    } else { //else, same as before
+        let direction = ray.direction.normalise();
+        let t = 0.5 * (direction.normalise().y + 1.0); //scale from -1 < y < 1 to  0 < t < 1
+
+        //two colours to blend
+        let white: Colour = v!(1);
+        let blue: Colour = v!(0.5, 0.7, 1);
+
+        //blend
+        blue * t + white * (1.0 - t)
+    }
+}
+```
+
+### 5.2
+
+The `Hit` struct:
+
+```rust, noplayground
+pub struct Hit {
+    pub impact_point: Point,
+    pub normal: Vec3,
+    pub paramater: f64,
+}
+```
+
+And the `Object` trait:
+
+```rust, noplayground
+// Represents objects within the scene
+pub trait Object {
+    //determines if an object has been hit by a ray
+    //returns the impact point, the surface normal to the impact point, and the solution to the impact equation
+    //if there is no intersection, return None
+    fn hit(&self, ray: &Ray, bounds: (f64, f64)) -> Option<Hit>;
+}
+```
+
+`Sphere` will still now have a hit method, but it will be part of it's `Object` implementation:
+
+```rust, noplayground
+impl Object for Sphere {
+    fn hit(&self, ray: &Ray, bounds: (f64, f64)) -> Option<Hit> {
+        //calculate intersection
+        let oc = ray.origin - self.center;
+        let a = ray.direction.dot(&ray.direction);
+        let b = 2.0 * oc.dot(&ray.direction);
+        let c = oc.dot(&oc) - self.radius * self.radius;
+        let d = b * b - 4.0 * a * c;
+
+        if d < 0.0 {
+            return None;
+        }
+
+        //get the correct root, if one lies in the bounds
+        let mut root = (-b - d.sqrt()) / (2.0 * a);
+        if !(bounds.0..bounds.1).contains(&root) {
+            root = (-b + d.sqrt()) / (2.0 * a);
+            if !(bounds.0..bounds.1).contains(&root) {
+                return None;
+            }
+        }
+
+        let impact_point = ray.at(root);
+        let normal = (impact_point - self.center) / self.radius;
+
+        Some(Hit {
+            impact_point,
+            normal,
+            paramater: root,
+        })
+    }
+}
+```
+
+Sphere is still a sphere, but it's also an object too. Rust makes it really easy for us to build expressive abstractions like this, which we do more of down the line when we start working with different materials too.
+
+### 5.3
+
+Something like this will work:
+
+```rust, noplayground
+let impact_point = ray.at(root);
+//the normal that is always opposite to the incident ray
+let normal = (impact_point - self.center) / self.radius;
+
+//make sure the normals always point outward from the sphere's surface regardless of incident ray direction
+//set front_face accordingly
+let (normal, front_face) = if ray.direction.dot(&normal) > 0.0 {
+    (-normal, false)
+} else {
+    (normal, true)
+};
+
+```
+
+### 5.4
+
+Your `Scene` type and it's `Object` impl. See how we're making nice use of that object trait from earlier?
+
+```rust, noplayground
+pub type Scene = Vec<Box<dyn Object + Sync>>;
+
+impl Object for Scene {
+    fn hit(&self, ray: &Ray, bounds: (f64, f64)) -> Option<Hit> {
+        self.iter()
+            .filter_map(|o| o.hit(ray, bounds)) //filter out the ones that don't intersect
+            .min_by(|h1, h2| h1.paramater.partial_cmp(&h2.paramater).unwrap()) //sort by smallest parameter, returning lowest
+    }
+}
+```
+
+Try not to worry about trait objects too much now, there's a lot of complexity associated with them (vtables, object safety) once you start to dig into it. All you need to understand is that `dyn Object + Sync` is a type that implements both `Object` and `Sync`, and we need to `Box` it on the heap because we don't know what those type are at compile time, so we can't reason about how big they are.
+
+### 5.5
+
+Our entire scene is defined like so in `main()`:
+
+```rust, noplayground
+//world
+let objects: Scene = vec![
+    Box::new(Sphere::new(v!(0, 0, -1), 0.5)),
+    Box::new(Sphere::new(v!(0, -100.5, -1), 100.0)),
+];
+```
+
+We then pass this to `ray::colour`, which is updated as shown:
+
+````rust, noplayground
+pub fn colour(scene: &impl Object, ray: &Ray) -> Colour {
+    if let Some(hit) = scene.hit(ray, (0.0, f64::INFINITY)) {
+        (hit.normal + v!(1)) / 2.0
+    } else {
+        let direction = ray.direction.normalise();
+        let t = 0.5 * (direction.normalise().y + 1.0); //scale from -1 < y < 1 to  0 < t < 1
+
+        //two colours to blend
+        let white: Colour = v!(1);
+        let blue: Colour = v!(0.5, 0.7, 1);
+
+        //blend
+        blue * t + white * (1.0 - t)
+    }
+}
+```
 
 ## 6: Antialiasing
 
@@ -286,3 +474,9 @@ if object::Sphere::new(v!(0, 0, -1), 0.5).hit(ray) {
 ## 10: Positionable Camera
 
 ## 11: Defocus Blur
+
+````
+
+```
+
+```
