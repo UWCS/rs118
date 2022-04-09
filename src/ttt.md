@@ -1,6 +1,6 @@
 # Tic-Tac-Toe!
 
-We're gonna use everything we learned to put together a neat little game of tic-tac-toe. I'm assuming you all know the rules. If you get stuck on any of the tasks, try to use your resources (The Book, Rust by Example, Google), or ask for someone to help talk you through it, before going straight to the solutions.
+We're gonna use everything we learned to put together a neat little game of tic-tac-toe. I'm assuming you all know the rules. If you get stuck on any of the tasks, try to use your resources (The Book, Rust by Example, Google), or ask for someone to help talk you through it, before going straight to the solutions. Remember, the compiler is your friend and will try to tell you where to fix your code when you have an error, and `cargo check` and `cargo clippy` will provide some useful lints for preventing errors and writing good Rust.
 
 ## Task 0: Create a new project
 
@@ -13,7 +13,7 @@ We're gonna need some types to represent things within our game. In a game with 
 - There are two players, `X` and `O`
 - The board is a 3x3 grid of either an `X` or `O`, or blank.
 
-**Task 1.1**: Implement a simple data type to represent players. We could just use strings or numbers to do this, but structuring data properly is key to writing good rust.
+**Task 1.1**: Implement a simple data type to represent players. We could just use strings or numbers to do this, but structuring data properly is key to writing good Tust.
 
 Recall that we can use `struct`s and `enum`s to create our own data types. Which of these could be used to represent our a type with only two different values?
 
@@ -41,7 +41,7 @@ The first bit you've already written, but we need to do the rest too
 
 **Task 2.1**: Write some code to prompt for user input in a loop, storing whatever data they enter.
 
-What kind of loop do you want (`for`/`while`/`loop`), and when do you want to break out of it/jump back to the top of it? Consider your control flow carefully here. You'll also need some way to read user input from the terminal. Rust has a [`Stdin` struct](https://doc.rust-lang.org/std/io/fn.stdin.html) with a `read_line()` method in it's standard library. [The Book](https://doc.rust-lang.org/book/ch02-00-guessing-game-tutorial.html#processing-a-guess) has some good examples of this.
+What kind of loop do you want (`for`/`while`/`loop`), and when do you want to break out of it/jump back to the top of it? Consider your control flow carefully here. You'll also need some way to read user input from the terminal. Rust has a [`Stdin` struct](https://doc.rust-lang.org/std/io/fn.stdin.html) with a `read_line()` method in it's standard library. [The Book](https://doc.rust-lang.org/book/ch02-00-guessing-game-tutorial.html#processing-a-guess) has some good examples of this. You'll need to convert your input from a string into a number too, so check out [`str::parse`](https://doc.rust-lang.org/std/primitive.str.html#method.parse) for some help with that.
 
 Now we have player input, we need to use it to update the state of the game.
 

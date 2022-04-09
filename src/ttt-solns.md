@@ -17,7 +17,7 @@ Exchange `code` for your editor of choice.
 You're looking for an enum:
 
 ```rust,noplayground
-#[derive(PartialEq, Eq, Copy, Clone)]
+#[derive(Debug, PartialEq, Eq, Copy, Clone)]
 enum Player {
     X,
     O,
@@ -118,6 +118,8 @@ for row in board.grid {
 }
 ```
 
+You could also implement the `Display` trait on the entire `Board` if you wished, moving the above code to the `fmt` function, similar to `Player`.
+
 ## Task 2.1
 
 You'll need `std::io`, which is a module from Rust's standard library. Modules are imported in Rust using the `use` keyword, so something like:
@@ -172,6 +174,8 @@ fn main() {
 }
 ```
 
+The reason we have to flush `stdout` manually is because it is usually flushed when there is a newline character or the runtime's buffer fills up, but neither of these things happen.
+
 Our board printing code is also included there at the bottom of the loop, but it doesn't do anything yet really, as using the input comes next. Our game is starting to come together!
 
 ## Task 2.2
@@ -185,15 +189,18 @@ if guess.is_err() {
     continue;
 }
 let square = guess.unwrap() - 1;
-if square > 8 || board.grid[square / 3][square % 3].is_some() {
+let row = square / 3;
+let column = square % 3;
+
+if square > 8 || board.grid[row][column].is_some() {
     continue;
 }
 
 //add the turn to the board
-board.grid[square / 3][square % 3] = Some(board.current_turn);
+board.grid[row][column] = Some(board.current_turn);
 ```
 
-[`parse()`](https://doc.rust-lang.org/stable/std/primitive.str.html#method.parse) is a funny little function, as it is generic over any type that a string can be turned into, hence why we have to use the affectionately-named turbofish syntax to specify what type we want to parse our string into. It also returns a `Result<T,E>`, which is like an upgraded version of `Option<T>`.
+[`parse()`](https://doc.rust-lang.org/stable/std/primitive.str.html#method.parse) is a funny little function, as it is generic over any type that a string can be turned into, hence why we have to use the affectionately-named turbofish syntax to specify what type we want to parse our string into. It also returns a `Result<T,E>`, which is like an upgraded version of `Option<T>`, expressing that the function returns either our result `T`, or some type expressing an error `E`. We check that the `Result` is not an error, and then unwrap the guess from it.
 
 We use one conditional expression to check if our parse function failed using `is_err()`, then we can `unwrap()` our number from the `Result`. Another condition is used to check the square is not out of range, or already taken. We jump back to the top of the loop in any of these cases.
 
