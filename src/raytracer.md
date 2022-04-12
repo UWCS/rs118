@@ -375,15 +375,104 @@ Add a variable `let samples = n` to the top of `main`. Update the render loop to
 
 ### 6.2
 
-camera stuff
+Now seems like as good a time as any to abstract the camera out into it's own type. Create a new file `camera.rs`, and in it add a `Camera` struct, that contains:
+
+- The camera's position, the ray origin
+- The position of the top left corner of the viewport
+- The horizontal and vertical viewport size vectors.
+
+Add a function to return the default camera, with the exact same configuration as before. Add also a method `get_ray()` that takes the coordinates of a pixel and returns the ray from the camera through it.
+
+Check you haven't introduced any bugs by making sure your render is the same as before.
 
 ## 6.3
 
-indicatif comes in here I think
+Taking 100 samples of each pixels is probably making your renderer start to chug again. If it's really taking too long, try dropping the number of samples, but we can add a progress bar as a nice little touch. We're going to use another crate: [`indicatif`](https://docs.rs/indicatif/latest/indicatif/).
+
+Indicatif works by binding a progress bar to iterators, and then shows a progress bar in the console as the iterator progresses. Have a read over the docs and examples to get an example of how it works.
+
+Add a progress bar with a given length to your program by declaring one in main using `ProgressBar::new()`. Configure it's style and format to your liking (the style I used is shown below). Add it to your iterator using `progress_with()`.
+
+```rust, noplayground
+bar.set_style(
+    ProgressStyle::default_bar()
+        .template(
+            "{spinner:.green} [{wide_bar:.green/white}] {percent}% - {elapsed_precise} elapsed {msg}",
+        )
+        .progress_chars("#>-")
+        .on_finish(ProgressFinish::WithMessage("-- Done!".into())),
+);
+```
+
+![](./img/progress-bar.png)
+
+Indicatif lets you create some really neat progress bars, so have a play around with it to customise it to your liking.
 
 ## 7: Diffuse Materials
 
+We're about ready to start making objects look realistic. Diffuse objects that don’t emit light merely take on the color of their surroundings, but they modulate that with their own intrinsic color. Light that reflects off a diffuse surface has its direction randomized. So, if we send three rays into a crack between two diffuse surfaces they will each have different random behaviour, as shown.
+
+![](https://raytracing.github.io/images/fig-1.08-light-bounce.jpg)
+
+They also may be absorbed rather than reflected. The darker the surface, the more likely absorption is (that's why it's dark). [Lambertian reflectance](https://en.wikipedia.org/wiki/Lambertian_reflectance) is the property that defines an ideal diffusely reflecting surface, and we're going to model it.
+
+There are two unit radius spheres tangent to the hit point $p$ of a surface, one inside and one outside the surface. They have centres at $(\mathbf P + \mathbf n)$ and $(\mathbf P - \mathbf n)$, where $\mathbf n$ is the normal to the surface at $\mathbf P$. Pick a random point $S$ inside the unit radius sphere and send a ray from the hit point $\mathbf P$ to the random point $\mathbf S$, to give us a random vector $(\mathbf S - \mathbf P)$, that will be the diffuse reflected ray.
+
+![](https://raytracing.github.io/images/fig-1.09-rand-vec.jpg)
+
+We need a way to pick a random point in a unit sphere. A rejection method is the easiest way to do this: pick a random point in a unit _cube_, and reject it and try again if it's not in the sphere.
+
+### Task 7.1
+
+Write a function to do this by generating a vector whose elements are random numbers between -1 and 1. If the length of the vector is less than 1, then it's in the sphere. If we normalise the vector to be actually _on_ the sphere, then it more accurately models Lambertian reflection.
+
+We're going to update the colour function to be recursive, casting reflection rays in the direction of the random target. The target of the reflected ray will be the $\mathbf P + \mathbf n + \mathbf S$, and will come from the impact point of the original ray. Halve the result of the recursive call so that each reflected ray has less and less intensity.
+
+### Task 7.2
+
+If you ran this you probably blew the stack with infinite recursive calls. We need to limit the number of child rays to prevent infinite recursion. Add a depth parameter to the `colour` function to keep track of the current recursion depth. When the recursion hits max depth, say 50 rays for now, stop recursing and just return black.
+
+You should have an image like so
+
+![](ADD IMAGE)
+
+### Task 7.3
+
+Take a look at the the shadowing under the sphere. This picture is very dark, but our spheres only absorb half the energy on each bounce, so they are 50% reflectors. If you can’t see the shadow, don’t worry, we will fix that now. These spheres should look pretty light, about a light gray. The reason for this is that almost all image viewers assume that the image is “gamma corrected”, meaning the 0 to 1 values have some transform before being stored as a byte. There are many good reasons for that, but for our purposes we just need to be aware of it. To a first approximation, we can use “gamma 2” which means raising the color to the power 1/gamma, or in our simple case 0.5, which is a square root.
+
+Add a line to the `Vector::to_rgb()` function to correct for this, taking the square root of all the values before converting them to bytes. Your render should look a bit lighter now, closer to what you'd expect for a 50% reflector:
+
+![](ADD IMAGE)
+
+### Task 7.4
+
+There is another subtle bug in there. Some of the reflected rays are reflecting from not exactly $t=0$, but at $t=0.000001$ or whatever rough floating point approximation we end up with. Ignoring hits very near to 0 can fix this, by passing the minimum bound as `0.001` instead of `0` to the hit function. The updated render:
+
+![](ADD IMAGE)
+
+This fixes the problem known as "shadow acne".
+
 ## 8: Metal
+
+We have diffuse materials modelled by lambertian reflectance, so let's add a metal material. Before we do that, we'll create some abstractions for dealing with different materials and reflections.
+
+### Task 8.1
+
+We're going to create a trait to describe how light scatters off different materials:
+
+```rust, noplayground
+pub trait Material {
+    fn scatter(&self, incident_ray: &Ray, hit: &Hit) -> Option<Reflection>;
+}
+```
+
+`Material::scatter` takes the incident ray and the `Hit` struct, and uses them to determine if there is a reflected ray. The `Reflection` struct contains the reflected ray, and also a vector to describe how the colour of the reflected ray is attenuated (because different materials will change the colour of reflected rays differently). Create a new file `material.rs`, and add `Material` and `Reflection` there.
+
+We'll add an implementation of `Material` for to describe lambertian reflectance. The `Lambertian` struct needs a single field to describe the colour of the material
+
+### Task 8.2
+
+### Task 8.2
 
 ## 9: Dielectrics
 
