@@ -1,4 +1,4 @@
-# Solutions
+# Tic-Tac-Toe Solutions
 
 ## Task 0
 
