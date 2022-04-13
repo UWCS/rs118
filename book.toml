@@ -9,6 +9,8 @@ title = "RS118: UWCS Learns Rust"
 
 [output.html]
 git-repository-url = "https://github.com/joeyh021/rs118"
+preferred-dark-theme = "coal"
+preferred-light-theme = "rust"
 
 [output.html.fold]
 enable = true
