@@ -56,7 +56,7 @@ impl VM {
 
 Note how both the type and the function are `pub`, so the module above (main, the crate root) can use them.
 
-### Task 1.3 & 1.4
+## Task 1.3 & 1.4
 
 We implement the trait for the type like so
 
@@ -81,7 +81,7 @@ impl Interpreter for VM {
 
 Look at how the methods are capturing `self`. `step()` takes a mutable reference, because it needs to mutate the state of the virtual machine, but it doesn't move, because then we wouldn't be able to do more than one step. The other two take immutable references, because they only need to read state, not modify it.
 
-### Task 1.5
+## Task 1.5
 
 `main()` should look like this:
 
@@ -96,7 +96,7 @@ fn main() {
 }
 ```
 
-### Task 1.6
+## Task 1.6
 
 The following return values don't do anything, and let the interpreter run without panics:
 
@@ -299,4 +299,4 @@ You really are on your own here.
 
 Try to ask for help, check your resources, and debug properly first before going straight to the nuclear option of just copying it from my solution, but you can find the `rs118-chip8` implementation on Github: ADD LINK
 
-Note that our solution is also far from perfect, so don't rely on it as a source of truth for CHIP-8 implementations!
+Note that my solution is also far from perfect, so don't rely on it as a source of truth for CHIP-8 implementations!
