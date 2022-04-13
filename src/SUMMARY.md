@@ -8,6 +8,6 @@
 - [Tic Tac Toe Project](./ttt.md)
   - [Solutions](./ttt-solns.md)
 - [CHIP-8 Project](./chip8.md)
-  - [CHIP-8 Solutions](./chip8-solns.md)
+  - [Solutions](./chip8-solns.md)
 - [Raytracer Project](./raytracer.md)
-  - [Raytracer Solutions](./raytracer-solns.md)
+  - [Solutions](./raytracer-solns.md)
