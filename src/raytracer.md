@@ -449,7 +449,7 @@ Take a look at the the shadowing under the sphere. This picture is very dark, bu
 
 Add a line to the `Vector::to_rgb()` function to correct for this, taking the square root of all the values before converting them to bytes. Your render should look a bit lighter now, closer to what you'd expect for a 50% reflector:
 
-![](ADD IMAGE)
+![](./img/7-3.png)
 
 ### Task 7.4
 
@@ -475,11 +475,63 @@ pub trait Material {
 
 `Material::scatter` takes the incident ray and the `Hit` struct, and uses them to determine if there is a reflected ray. The `Reflection` struct contains the reflected ray, and also a vector to describe how the colour of the reflected ray is attenuated (because different materials will change the colour of reflected rays differently). Create a new file `material.rs`, and add `Material` and `Reflection` there.
 
-We'll add an implementation of `Material` for to describe lambertian reflectance. The `Lambertian` struct needs a single field to describe the colour of the material
+We'll add an implementation of `Material` to describe lambertian reflectance. The `Lambertian` struct needs a single field to describe how the colour of reflected rays is attenuated.
+
+The `Material` impl for `Lambertian` should contain the logic that's currently in `ray::colour`. Calculate the scatter direction, create the reflected ray, and return it inside a `Reflection` struct. The amount the reflected ray is attenuated by is the colour of the material.
 
 ### Task 8.2
 
-### Task 8.2
+We need to make our objects aware of the fact that they can be different materials too. The `Sphere` struct needs an extra field, `material`, the type of which should be any type implementing the `Material` trait. That's right, your struct is going to need to be generic.
+
+Add a field `reflection` to the `Hit` struct too. The idea is that then the `Object::hit` method populates that field if the hit caused a reflected ray to be generated. Update `Sphere::hit` to call the `Material::scatter` from it's `material` field, and use that to fill the `reflection` field of `Hit`.
+
+Update `ray::colour` to use the new `Material` abstraction. If there is a reflected ray, make the recursive call same as before, returning the result multiplied by the colour attenuation.
+You'll need to update the two spheres created in `main` too to account for this. Make them both have colour `(0.5, 0.5, 0.5)`
+
+There's a lot of re-architecting of the raytracer going on here, but nothing actually changes functionally yet. Make sure the rendered image is the same. If you set the random seed to be the same, Git will even tell you if your file has changed or not!
+
+### Task 8.3
+
+Take another closer look at `Lambertian::scatter`. If the random unit vector generated is _exactly_ opposite the normal vector, the two will sum to zero and the scatter direction will be zero, meaning we'll have no reflected ray. In our implementation, this means we get a black pixel where we should have colour. We need to account for this by checking if the scatter direction is zero, and if it is we'll just set the scatter direction to be the normal.
+
+Floating point zero is weird because it isn't exact (we already had to deal with shadow acne), so add a method to check if a vector is zero, returning `true` if all three of it's elements are within some small tolerance of zero. If this is the case, replace the scatter direction with the hit normal.
+
+### Task 8.4
+
+Now we've built up our abstractions and tested they work on the existing logic, we can extend the raytracer to include a metal material.
+
+For smooth metal the ray won't be randomly scattered. We need to do the maths to work out the direction of reflected rays.
+
+![](https://raytracing.github.io/images/fig-1.11-reflection.jpg)
+
+The reflected ray direction in red is $\mathbf v + 2 \mathbf b$. The length of $\mathbf b$ is $\mathbf b \cdot n$ and it goes in the same direction as $\mathbf n$, so we can calculate it as $(\mathbf b \cdot \mathbf n) \mathbf n$. So we have:
+
+$$r =v - 2 (\mathbf b \cdot \mathbf n) \mathbf n$$
+
+(Note the minus sign, since $v$ points inwards and $r$ outward.)
+
+Write a function `reflect(v: Vec3, normal: &Vec3) -> Vec3` to implement this. I just put mine as a private function at the bottom of `material.rs`.
+
+This function is used to reflect rays off our metal material. Add a struct `Metal` that has a single `Colour` field, and implement `Material` for it, calculating the reflected ray. Note that the reflected ray should only be returned if the dot product of it's direction with the hit normal is greater than zero. A reflection ray that is at an angle of greater than 90 degrees to the normal doesn't make sense, so we need to account for this.
+
+Update your scene so you have four spheres:
+
+- Center `(0, 0, -1)`, radius `0.5`, `(0.7, 0.3, 0.3)` lambertian
+- Center `(-1, 0 -1)`, radius `0.5`, `(0.8, 0.8, 0.8)` metal
+- Center `(0, 0, -1)`, radius `0.5`, `(0.8, 0.6, 0.2)` metal
+- Center `(0, -100.5, -1)`, radius `100`, `(0.8, 0.8, 0)` lambertian
+
+Your new render should look like this. See how the metal spheres are reflecting the centre sphere, and you can see the other half of the ground sphere behind them.
+
+![](./img/8-4.png)
+
+### Task 8.5
+
+Right now the metals look perfectly smooth, which is very rarely the case in real life. We can add a little fuzziness by randomising the reflected rays slightly, with a fuzz factor. We'll change the scattered ray direction to be $\mathbf r + f \mathbf S$, where `f` is a scalar fuzz factor, and $S$ is a random unit vector. Add a `fuzz` field to the `Metal` material struct, and update the reflected ray direction to be a little fuzzy, reusing the random unit vector function from earlier.
+
+Make the left sphere have a fuzziness of `0.3`, and the right sphere `1.0`. Your updated render should look like this:
+
+![](./img/8-5.png)
 
 ## 9: Dielectrics
 

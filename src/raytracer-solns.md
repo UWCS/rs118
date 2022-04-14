@@ -52,7 +52,7 @@ We scale the range 0-1 from 0-255 by multiplying by 255.999, as the `as` cast fr
 
 Our `Vec3` struct with all it's methods:
 
-```rust
+```rust, noplayground
 pub struct Vec3 {
     pub x: f64,
     pub y: f64,
@@ -116,7 +116,7 @@ pub struct Vec3 {
 
 Your two hand-written `Mul` impls:
 
-```rust
+```rust, noplayground
 impl Mul<Vec3> for f64 {
     type Output = Vec3;
 
@@ -630,12 +630,225 @@ if let Some(hit) = scene.hit(ray, (0.00001, f64::INFINITY)) { //...
 
 ## 8: Metal
 
+### 8.1
+
+The entire contents of `material.rs` is shown below:
+
+```rust, noplayground
+use derive_more::Constructor;
+
+use crate::{
+    object::Hit,
+    ray::Ray,
+    vector::{Colour, Vec3},
+};
+
+#[derive(Debug)]
+pub struct Reflection {
+    pub ray: Ray,
+    pub colour_attenuation: Colour,
+}
+
+pub trait Material {
+    fn scatter(&self, incident_ray: &Ray, hit: &Hit) -> Option<Reflection>;
+}
+
+#[derive(Debug, Constructor)]
+pub struct Lambertian(Colour);
+
+impl Material for Lambertian {
+    fn scatter(&self, _: &Ray, hit: &Hit) -> Option<Reflection> {
+        //calculate reflected ray
+        let scatter_direction = hit.normal + Vec3::rand_unit();
+        let reflected_ray = Ray::new(hit.impact_point, scatter_direction);
+
+        //return it, along with the colour attenuation of it for this material
+        Some(Reflection {
+            ray: reflected_ray,
+            colour_attenuation: self.0,
+        })
+    }
+}
+```
+
+### 8.2
+
+The new `Sphere` struct should look as follows, with the bounded generic type variable.
+
+```rust, noplayground
+#[derive(Debug, Constructor)]
+pub struct Sphere<M: Material> {
+    center: Point,
+    radius: f64,
+    material: M,
+}
+```
+
+`Hit` should have a new field `pub reflection: Option<Reflection>`, and it should be filled at the bottom of `Sphere::hit`
+
+```rust, noplayground
+impl<M: Material> Object for Sphere<M> {
+    fn hit(&self, ray: &Ray, bounds: (f64, f64)) -> Option<Hit> {
+        // all the same as before
+        //...
+
+        let mut h = Hit {
+            impact_point,
+            normal,
+            paramater: root,
+            front_face,
+            reflection: None,
+        };
+
+        h.reflection = self.material.scatter(ray, &h);
+        Some(h)
+    }
+}
+```
+
+`ray::colour` should look like this now too:
+
+```rust, noplayground
+ub fn colour(scene: &impl Object, ray: &Ray, depth: u8) -> Colour {
+    if depth == 0 {
+        return v!(0);
+    }
+
+    if let Some(hit) = scene.hit(ray, (0.00001, f64::INFINITY)) {
+        if let Some(reflection) = hit.reflection {
+            reflection.colour_attenuation * colour(scene, &reflection.ray, depth - 1)
+        } else {
+            v!(0, 0, 0)
+        }
+    } else {
+        let direction = ray.direction.normalise();
+        let t = 0.5 * (direction.normalise().y + 1.0); //scale from -1 < y < 1 to  0 < t < 1
+
+        //two colours to blend
+        let white: Colour = v!(1);
+        let blue: Colour = v!(0.5, 0.7, 1);
+
+        //blend
+        blue * t + white * (1.0 - t)
+    }
+}
+```
+
+Don't forget to update the two spheres in `main`:
+
+```rust, noplayground
+let objects: Scene = vec![
+    Box::new(Sphere::new(v!(0, 0, -1), 0.5, Lambertian::new(v!(0.5)))),
+    Box::new(Sphere::new(
+        v!(0, -100.5, -1),
+        100.0,
+        Lambertian::new(v!(0.5)),
+    )),
+];
+```
+
+### 8.3
+
+I added `Vec3::is_zero()`, but you could also add it as a private helper function at the bottom if you wanted, or just inline it. It should like this:
+
+```rust, noplayground
+pub fn is_zero(&self) -> bool {
+    let tolerance: f64 = 1e-8;
+    self.x.abs() < tolerance && self.y.abs() < tolerance && self.z.abs() < tolerance
+}
+```
+
+This conditional check is then added to `Lambertian::scatter`
+
+```rust, noplayground
+if scatter_direction.is_zero() {
+    scatter_direction = hit.normal;
+}
+```
+
+### 8.4
+
+The metal struct and impl should look like this:
+
+```rust, noplayground
+#[derive(Debug, Constructor)]
+pub struct Metal(Colour);
+
+impl Material for Metal {
+    fn scatter(&self, incident_ray: &Ray, hit: &Hit) -> Option<Reflection> {
+        //the reflected ray direction
+        let reflection = reflect(incident_ray.direction, &hit.normal);
+
+        //the scattered ray
+        let scattered = Ray::new(hit.impact_point, reflection);
+
+        if scattered.direction.dot(&hit.normal) > 0.0 {
+            Some(Reflection {
+                ray: scattered,
+                colour_attenuation: self.0,
+            })
+        } else {
+            None
+        }
+    }
+}
+
+fn reflect(v: Vec3, normal: &Vec3) -> Vec3 {
+    v - 2.0 * v.dot(normal) * *normal
+}
+```
+
+The new `Scene` with four spheres is shown below too. This bit isn't hard, it's just boilerplate with constructors so I wouldn't blame you for copy-pasting this.
+
+```rust, noplayground
+let objects: Scene = vec![
+    Box::new(Sphere::new(
+        //center
+        v!(0, 0, -1),
+        0.5,
+        Lambertian::new(v!(0.7, 0.3, 0.3)),
+    )),
+    Box::new(Sphere::new(
+        //ground
+        v!(0, -100.5, -1),
+        100.0,
+        Lambertian::new(v!(0.8, 0.8, 0.0)),
+    )),
+    Box::new(Sphere::new(
+        //left
+        v!(-1.0, 0.0, -1.0),
+        0.5,
+        Metal::new(v!(0.8, 0.8, 0.8)),
+    )),
+    Box::new(Sphere::new(
+        //right
+        v!(1.0, 0.0, -1.0),
+        0.5,
+        Metal::new(v!(0.8, 0.6, 0.2)),
+    )),
+];
+```
+
+### 8.5
+
+You'll need a new field in `Metal`:
+
+```rust, noplayground
+#[derive(Debug, Constructor)]
+pub struct Metal {
+    colour: Colour,
+    fuzz: f64,
+}
+```
+
+The new reflected ray direction in `Metal::scatter` should look add a small random vector, as shown.
+
+```rust, noplayground
+let reflection = reflect(incident_ray.direction, &hit.normal) + self.fuzz * Vec3::rand_unit();
+```
+
 ## 9: Dielectrics
 
 ## 10: Positionable Camera
 
 ## 11: Defocus Blur
-
-```
-
-```
