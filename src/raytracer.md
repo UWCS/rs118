@@ -387,11 +387,18 @@ Check you haven't introduced any bugs by making sure your render is the same as 
 
 ## 6.3
 
-Taking 100 samples of each pixels is probably making your renderer start to chug again. If it's really taking too long, try dropping the number of samples, but we can add a progress bar as a nice little touch. We're going to use another crate: [`indicatif`](https://docs.rs/indicatif/latest/indicatif/).
+Taking 100 samples of each pixels is probably making your renderer start to chug again. If it's really taking too long, try dropping the number of samples, but we can add a progress bar as a nice little touch to help us see how long its got left. We're going to use another crate: [`indicatif`](https://docs.rs/indicatif/latest/indicatif/).
 
 Indicatif works by binding a progress bar to iterators, and then shows a progress bar in the console as the iterator progresses. Have a read over the docs and examples to get an example of how it works.
 
-Add a progress bar with a given length to your program by declaring one in main using `ProgressBar::new()`. Configure it's style and format to your liking (the style I used is shown below). Add it to your iterator using `progress_with()`.
+Remember that we're using Rayon's parallel iterators instead of regular iterators? Indicatif has support for those too. In Rust, crates can add optional features that are enabled/disabled in the package manifest. By enabling Indicatif's `rayon` feature, it will work correctly with parallel iterators. Add the following line to your dependencies:
+
+```toml
+[dependencies]
+indicatif = { version = "0.16", features = ["rayon"] }
+```
+
+Add a progress bar with a given length to your program by declaring one in main using `ProgressBar::new()`. Configure it's style and format to your liking (the style I used is shown below). Add it to your parallel iterator using `progress_with()`.
 
 ```rust, noplayground
 bar.set_style(
@@ -414,19 +421,19 @@ We're about ready to start making objects look realistic. Diffuse objects that d
 
 ![](https://raytracing.github.io/images/fig-1.08-light-bounce.jpg)
 
-They also may be absorbed rather than reflected. The darker the surface, the more likely absorption is (that's why it's dark). [Lambertian reflectance](https://en.wikipedia.org/wiki/Lambertian_reflectance) is the property that defines an ideal diffusely reflecting surface, and we're going to model it.
+They also may be absorbed rather than reflected. The darker the surface, the more likely absorption is (that's why it's dark).[Lambertian reflectance](https://en.wikipedia.org/wiki/Lambertian_reflectance) is the property that defines an ideal diffusely reflecting surface, and we're going to model it.
 
 There are two unit radius spheres tangent to the hit point $p$ of a surface, one inside and one outside the surface. They have centres at $(\mathbf P + \mathbf n)$ and $(\mathbf P - \mathbf n)$, where $\mathbf n$ is the normal to the surface at $\mathbf P$. Pick a random point $S$ inside the unit radius sphere and send a ray from the hit point $\mathbf P$ to the random point $\mathbf S$, to give us a random vector $(\mathbf S - \mathbf P)$, that will be the diffuse reflected ray.
 
 ![](https://raytracing.github.io/images/fig-1.09-rand-vec.jpg)
 
-We need a way to pick a random point in a unit sphere. A rejection method is the easiest way to do this: pick a random point in a unit _cube_, and reject it and try again if it's not in the sphere.
+We need a way to pick a random point in a unit sphere. A rejection method is the easiest way to do this: pick a random point in a unit _cube_, and reject it and try again if it's not in the sphere. If we then normalise the vector to be actually _on_ the sphere, then it actually more accurately models Lambertian reflection. The original book has a [much more detailed discussion of modelling diffuse reflection](https://raytracing.github.io/books/RayTracingInOneWeekend.html#diffusematerials/truelambertianreflection), and I encourage you to read over it.
 
 ### Task 7.1
 
-Write a function to do this by generating a vector whose elements are random numbers between -1 and 1. If the length of the vector is less than 1, then it's in the sphere. If we normalise the vector to be actually _on_ the sphere, then it more accurately models Lambertian reflection.
+Write a function to do this by generating a vector whose elements are random numbers between -1 and 1. If the length of the vector is less than 1, then it's in the sphere.
 
-We're going to update the colour function to be recursive, casting reflection rays in the direction of the random target. The target of the reflected ray will be the $\mathbf P + \mathbf n + \mathbf S$, and will come from the impact point of the original ray. Halve the result of the recursive call so that each reflected ray has less and less intensity.
+We're going to update the colour function to be recursive, casting reflection rays in a random direction. The direction of the reflected ray will be $\mathbf n + \mathbf S$, and will come from the impact point of the original ray (you can get all that data from your `Hit` struct, remember). Halve the result of the recursive call so that each reflected ray has less and less intensity, and return that.
 
 ### Task 7.2
 
@@ -434,7 +441,7 @@ If you ran this you probably blew the stack with infinite recursive calls. We ne
 
 You should have an image like so
 
-![](ADD IMAGE)
+![](./img/7-2.png)
 
 ### Task 7.3
 
@@ -446,9 +453,9 @@ Add a line to the `Vector::to_rgb()` function to correct for this, taking the sq
 
 ### Task 7.4
 
-There is another subtle bug in there. Some of the reflected rays are reflecting from not exactly $t=0$, but at $t=0.000001$ or whatever rough floating point approximation we end up with. Ignoring hits very near to 0 can fix this, by passing the minimum bound as `0.001` instead of `0` to the hit function. The updated render:
+There is another subtle bug in there. Some of the reflected rays are reflecting from not exactly $t=0$, but at $t=0.000001$ or whatever rough floating point approximation we end up with. Ignoring hits very near to 0 can fix this, by passing the minimum bound as `0.00001` instead of `0` to the hit function. The updated render looks lighter and much cleaner:
 
-![](ADD IMAGE)
+![](./img/7-4.png)
 
 This fixes the problem known as "shadow acne".
 

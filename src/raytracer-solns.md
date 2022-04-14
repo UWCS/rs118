@@ -486,7 +486,147 @@ for _ in 0..samples {
 
 You could also draw the entire scene 100 times and average those out if you wanted, but it might require a bit more work to implement so this is the easy route.
 
+### 6.2
+
+The camera file should look as follows. We're literally just moving stuff over from main and encapsulating a few bits, that'll come in handy later when we make the camera a bit fancier.
+
+```rust, noplayground
+use crate::{ray::Ray, v, Point, Vec3};
+
+pub struct Camera {
+    origin: Point,
+    top_left: Point,
+    horizontal: Vec3,
+    vertical: Vec3,
+}
+
+impl Camera {
+    pub fn default() -> Self {
+        let aspect_ratio = 16.0 / 9.0;
+
+        let viewport_height = 2.0;
+        let viewport_width = aspect_ratio * viewport_height;
+        let focal_length = 1.0;
+
+        let origin: Point = v!(0, 0, 0);
+        let horizontal = v!(viewport_width, 0, 0);
+        let vertical = v!(0, -viewport_height, 0);
+        //the top  left of our image is the origin, -1 away from the camera and up and right by half the height/width
+        let top_left: Point = origin - horizontal / 2.0 - vertical / 2.0 - v!(0, 0, focal_length);
+
+        Camera {
+            origin,
+            top_left,
+            horizontal,
+            vertical,
+        }
+    }
+
+    pub fn get_ray(&self, u: f64, v: f64) -> Ray {
+        let px_position = self.top_left + u * self.horizontal + v * self.vertical;
+        Ray::new(self.origin, px_position - self.origin)
+    }
+}
+```
+
+`main` is also edited to remove all this and add a single call to `camera::Camera::default()` instead. The compiler will tell you which variables are used and unused where and what you can remove from `main`. The render loop should get it's rays from the camera using `Camera::get_ray()`. Calculate `u` and `v` the same as before, but pass them to the camera:
+
+```rust, noplayground
+let ray = camera.get_ray(u, v);
+colour = colour + ray::colour(&objects, &ray);
+```
+
+### 6.3
+
+The Indicatif code added in main:
+
+```rust, noplayground
+println!("Rendering Scene...");
+    let bar = ProgressBar::new((img_width * img_height) as u64);
+    bar.set_style(
+        ProgressStyle::default_bar()
+            .template(
+                "{spinner:.green} [{wide_bar:.green/white}] {percent}% - {elapsed_precise} elapsed {msg}",
+            )
+            .progress_chars("#>-")
+            .on_finish(ProgressFinish::WithMessage("-- Done!".into())),
+    );
+```
+
+`.progress_with(bar)` is added to the iterator chain just before the `for_each()` call
+
+```rust, noplayground
+buffer
+    .enumerate_pixels_mut()
+    .par_bridge()
+    .progress_with(bar)
+    .for_each(|(i, j, px)| {...
+```
+
+Again, I encourage you to style the progress bar yourself.
+
 ## 7: Diffuse Materials
+
+### 7.1 & 7.2
+
+I added my randon unit vector function to the `Vec3` struct, but you can put it wherever you think makes sense.
+
+```rust, noplayground
+pub fn rand_unit() -> Self {
+    loop {
+        //random f64 range 0-1, scale it -1 to 1
+        let v = v!(rand::random::<f64>() * 2.0 - 1.0);
+
+        //if the vector lies in the unit sphere
+        if v.len() < 1.0 {
+            //normalise so it lies *on* the sphere and is a unit vector
+            break v.normalise();
+        }
+    }
+}
+```
+
+Your updated `ray::colour` function should look as shown
+
+```rust, noplayground
+pub fn colour(scene: &impl Object, ray: &Ray, depth: u8) -> Colour {
+    if depth == 0 {
+        return v!(0);
+    }
+
+    if let Some(hit) = scene.hit(ray, (0.0, f64::INFINITY)) {
+        let direction = hit.normal + Vec3::rand_unit();
+        let origin = hit.impact_point;
+        0.5 * colour(scene, &Ray::new(origin, direction), depth - 1)
+    } else {
+        //... as before
+```
+
+Make sure to update the call site for the function to add the `max_depth` parameter.
+
+### 7.3
+
+I added a call to `map()` in `Vec3::to_rgb()` to take the square root of everything before we do the byte conversion.
+
+```rust, noplayground
+pub fn to_rgb(self) -> image::Rgb<u8> {
+    image::Rgb(
+        [self.x, self.y, self.z]
+            .map(|c| c.sqrt())
+            .map(|c| (c * 255.999) as u8),
+    )
+}
+```
+
+Image encoding and colours is a much more complex topic than you might expect, so its worth looking into if you're interested.
+
+### 7.4
+
+Just changed the `0.0` to `0.00001` in the call to `Scene::hit` in `ray::colour`:
+
+```rust, noplayground
+if let Some(hit) = scene.hit(ray, (0.00001, f64::INFINITY)) { //...
+```
 
 ## 8: Metal
 
@@ -495,3 +635,7 @@ You could also draw the entire scene 100 times and average those out if you want
 ## 10: Positionable Camera
 
 ## 11: Defocus Blur
+
+```
+
+```
