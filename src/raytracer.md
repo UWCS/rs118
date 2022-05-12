@@ -90,18 +90,18 @@ We're gonna take a quick adventure down the rabbit hole that is Rust macros to c
 
 Declarative macros are just functions that operate on syntax. Our macro is declared using `macro_rules!`, and we'll call it `v!` (because its for vectors).
 
-```rust
+```rust, noplayground
 macro_rules v! {
     //patterns
 }
 ```
 
-The arguments are declared using syntax similar to `match`: `() => {}`. The macro matches on the pattern in the parentheses, and then expands to the code in the braces. In the parentheses goes the arguments to the macrom, which are Rust syntax items, specified like `$x: ty`, where `$x` is the name of the token, and `ty` is the type of the syntax token. Theres a few kinds of tokens, but we'll just use `expr` for now, which matches any expression, which most things are in rust.
+The arguments are declared using syntax similar to `match`: `() => {}`. The macro matches on the pattern in the parentheses, and then expands to the code in the braces. In the parentheses goes the arguments to the macrom, which are Rust syntax items, specified like `\$x: ty`, where `\$x` is the name of the token, and `ty` is the type of the syntax token. Theres a few kinds of tokens, but we'll just use `expr` for now, which matches any expression, which most things are in rust.
 
-```rust
+```rust, noplayground
 macro_rules v! {
-    ($x: expr) => {
-        Vec3::new($x, $x, $x)
+    (\$x: expr) => {
+        Vec3::new(\$x, \$x, \$x)
     }
 }
 ```
@@ -112,11 +112,11 @@ We're going to add another pattern too to create a vector with three different a
 
 ```rust
 macro_rules! v {
-    ($x: expr, $y: expr, $z: expr) => {
-        Vec3::new($x, $y, $z)
+    (\$x: expr, \$y: expr, \$z: expr) => {
+        Vec3::new(\$x, \$y, \$z)
     };
-    ($x: expr) => {
-        Vec3::new($x, $x, $x)
+    (\$x: expr) => {
+        Vec3::new(\$x, \$x, \$x)
     };
 }
 ```
@@ -126,11 +126,11 @@ We'll add another neat little trick too. The `f64::from` uses the [`From`](https
 ```rust
 #[macro_export]
 macro_rules! v {
-    ($x:expr, $y: expr, $z: expr) => {
-        Vec3::new(f64::from($x), f64::from($y), f64::from($z))
+    (\$x:expr, \$y: expr, \$z: expr) => {
+        Vec3::new(f64::from(\$x), f64::from(\$y), f64::from(\$z))
     };
-    ($x:expr) => {
-        Vec3::new(f64::from($x), f64::from($x), f64::from($x))
+    (\$x:expr) => {
+        Vec3::new(f64::from(\$x), f64::from(\$x), f64::from(\$x))
     };
 }
 ```
@@ -534,6 +534,88 @@ Make the left sphere have a fuzziness of `0.3`, and the right sphere `1.0`. Your
 ![](./img/8-5.png)
 
 ## 9: Dielectrics
+
+Clear materials such as water and glass are [dielectrics](https://en.wikipedia.org/wiki/Dielectric). When light hits them, it splits into a reflected ray and a refracted ray. We'll model this in our raytracer by randomly choosing between either reflection or refraction, and only generating one or the other per sample.
+
+Refraction is described by Snell's law:
+
+$$
+\eta \sin \theta = \theta ' \sin (\theta ')
+$$
+
+Where $\theta$ and $\theta '$ are angles from the normal, and $\eta$ and $\eta '$ are the refractive indices of the two materials. We want to solve for $\theta '$, to get the angle of our new ray.
+
+![](https://raytracing.github.io/images/fig-1.13-refraction.jpg)
+
+On the refracted side of the surface there is a refracted ray $\mathbf{R} '$ and a normal $\mathbf{n}'$, and an angle $\theta '$ between them. The ray $\mathbf{R} '$ can be split into the sum of it's two components parallel and perpendicular to $\mathbf{n}'$:
+
+$$
+\mathbf{R}' = \mathbf{R}_{\perp}' + \mathbf{R}_{\parallel}'
+$$
+
+We can solve for both those components (go ahead and prove this for yourself if you like):
+
+$$\mathbf{R}_{\perp}' = \frac{\eta}{\eta '} (\mathbf{R} + \mathbf{n}\cos\theta)$$
+$$\mathbf{R}_{\parallel}' = - \sqrt{\left|1 - \mathbf{R}_{\perp}'\cdot\mathbf{R}_{\perp}' \right| \mathbf{n}}$$
+
+Note that this still depends on knowing $\cos \theta$, but we can get this from the dot product:
+
+$$\mathbf{a} + \mathbf{b} = |\mathbf{a}||\mathbf{b}| \cos\theta$$
+
+If we restrict $\mathbf{a}$ and $\mathbf{b}$ to be unit vectors, ie $\mathbf{a} = \mathbf{b} = 1$, then:
+
+$$\mathbf{a} + \mathbf{b} =  \cos\theta$$
+
+This gives us $\mathbf{R}_{\perp}'$ in terms of known quantities:
+
+$$\mathbf{R}_{\perp}' = \frac{\eta}{\eta '} (\mathbf{R} + \mathbf{n}(-\mathbf{R} \cdot \mathbf{n})) $$
+
+### Task 9.1
+
+Write a small helper function in `material.rs` to return the direction of the refracted ray. There's a lot of maths here, but the idea is:
+
+- Take the incident ray, the normal, and the ratio $\frac{\eta}{\eta '}$ as arguments
+- Calculate $\cos\theta$
+- Calculate $\mathbf{R}_{\perp}'$ and $\mathbf{R}_{\parallel}'$
+- Return the sum of the two
+
+### Task 9.2
+
+You can refract rays, so let's add a dielectric material that does just that with it's scatter method. Create a new struct `Dielectric` that with a single field, it's refraction ratio ($\frac{\eta}{\eta '}$). Create a new `Material` impl for it, such that `scatter` returns a new reflected (technically it's refracted now) ray with a colour attenutation of 1 (no attenuation), and direction vector calculated by your refract function. Don't forget to normalise your incident ray before using it, as we made the assumption that $\mathbf{a} = \mathbf{b} = 1$ when we did the maths above.
+
+An interesting thing to note is that if your ray comes from outside the sphere (ie, `hit.front_face == true`), then you will need to set the refraction ratio to be it's reciprocal, as $\eta$ and $\eta '$ are flipped.
+
+Update the scene to change the left sphere to be dielectrics with ratios of 1.5, then render it and see what you get.
+
+![](./img/9-2.png)
+
+### Task 9.3
+
+That doesn't look right, which is because there's a flaw in our approximations.
+
+When the ray is going from a material with a high refractive index to one with a lower one, there is no solution so Snell's law. Referring back to it:
+
+$$
+\sin\theta ' = \frac{\eta}{\eta '} \sin \theta
+$$
+
+If the ray is inside glass and outside is air ($\eta = 1.5$, $\eta ' = 1.0$), then:
+
+$$
+\sin\theta ' = \frac{1.5}{1.0} \sin \theta
+$$
+
+But the value of $\sin\theta ' $ cannot be greater than 1, so the equality is broken and the solution does not exist, so the glass cannot refract. In this case the ray _must_ be reflected, which gives us the phenomenon known as total internal reflection.
+
+Update `Dielectric::scatter` to account for this, implementing total internal reflection when it cannot refract. You'll need to calculate both $\cos\theta = \mathbf{R}\cdot\mathbf{n}$ and $\sin\theta = \sqrt{1 - \cos^2 \theta}$, then if $\frac{\eta}{\eta '}\sin\theta > 1.0$, reflect instead of refract.
+
+You should get something that looks a bit more correct:
+
+![](./img/9-3.png)
+
+If you can't see much of a difference between the two for this scene, I wouldn't blame you. Play around with the scenes to see if you can spot the differences in the models, and take solace in the fact that your model is more correct.
+
+### Task 9.4
 
 ## 10: Positionable Camera
 
