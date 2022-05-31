@@ -4,7 +4,7 @@ For those of you not familiar with raytracing, it's a 3D graphics rendering tech
 
 ![](./img/final-render.png)
 
-This tutorial is adapted from the excellent [_Ray Tracing in One Weekend_](https://raytracing.github.io/), amd also utilises some of the really helpful illustrations from there. I've rewritten it from C++ to Rust, and also added a few other bits to hopefully make it more interesting and explore a few more bits of Rust. This is only an adaptation of the first book, so if you get to the end of this and want to explore more, the next two books are certainly worth a read, though you'll have to [carcinise](https://en.wikipedia.org/wiki/Carcinisation) it yourself (or do it in C++, which despite all it's problems is still widely used and a good skill to have).
+This tutorial is adapted from the excellent [_Ray Tracing in One Weekend_](https://raytracing.github.io/), amd also utilises some of the really helpful illustrations from there. I've rewritten it from C++ to Rust, and also added a few other bits to hopefully make it more interesting and explore a few more bits of Rust.
 
 There's a fair amount of vector maths involved here but don't let that intimidate you. I'll try to explain it all well enough that you don't need a maths degree to follow whats going on.
 
@@ -819,4 +819,12 @@ Use the following camera and image settings:
 
 ![](./img/final-render-2.png)
 
+An interesting thing you might note is the glass balls don’t really have shadows which makes them look like they are floating. This is not a bug — you don’t see glass balls much in real life, where they also look a bit strange, and indeed seem to float on cloudy days. A point on the big sphere under a glass ball still has lots of light hitting it because the sky is re-ordered rather than blocked.
+
 ## What next?
+
+What you've built is actually an incredibly cool thing, modelling physical light using a bit of simple geometry to build the basis of a 3D rendering engine, the principles of which are not dissimilar to that used in real gaming and 3D animation applications.
+
+Play around with the scene, change the objects and their positions, put the camera at weird angles, see what cool pictures you can generate.
+
+There are two more books that follow on from this [Ray Tracing: The Next Week](https://raytracing.github.io/books/RayTracingTheNextWeek.html) and [Ray Tracing: The Rest of Your Life](https://raytracing.github.io/books/RayTracingTheRestOfYourLife.html), which go on and add a bunch more features to the ray tracer. This was only up to the end of the first book so, the others are certainly worth a read, though you'll have to [carcinise](https://en.wikipedia.org/wiki/Carcinisation) it yourself (or do it in C++, which despite all it's problems is still widely used and a good skill to have).
