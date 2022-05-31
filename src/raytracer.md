@@ -23,7 +23,8 @@ Also, unlike the original book, I'm not going to give you the code snippets as w
 | 9: [Dielectrics](#9-dielectrics)                                              |
 | 10: [Positionable Camera](#10-positionable-camera)                            |
 | 11: [Depth of Field](#11-depth-of-field)                                      |
-| 12: [Next steps](#what-next)                                                  |
+| 12: [Final Render](#12-a-final-render)                                        |
+| 13: [What Next?](#what-next)                                                  |
 
 ## 1: Images
 
@@ -742,7 +743,7 @@ The focus centre of the blue sphere lies in the focus plane so that is in focus,
 
 ![](./img/11.png)
 
-This specific scene looks a bit rubbish, so let's do one nicer.
+This specific scene looks a bit rubbish, so let's do one that's a bit nicer.
 
 ## 12: A Final Render
 
