@@ -10,6 +10,21 @@ There's a fair amount of vector maths involved here but don't let that intimidat
 
 Also, unlike the original book, I'm not going to give you the code snippets as we go because you'll just copy and paste them. Feel free to take a look at the solutions if you get stuck, but try to solve the tasks yourself as you'll find it much more rewarding. Remember to make use of your resources!
 
+| Contents                                                                      |
+| ----------------------------------------------------------------------------- |
+| 1: [Images](#1-images)                                                        |
+| 2: [Vectors](#2-vectors)                                                      |
+| 3: [Rays](#3-rays)                                                            |
+| 4: [Spheres](#4-spheres)                                                      |
+| 5: [Surface Normals & Multiple Objects](#5-surface-normals--multiple-objects) |
+| 6: [Antialising](#6-antialiasing)                                             |
+| 7: [Diffuse Materials](#7-diffuse-materials)                                  |
+| 8: [Metal](#8-metal)                                                          |
+| 9: [Dielectrics](#9-dielectrics)                                              |
+| 10: [Positionable Camera](#10-positionable-camera)                            |
+| 11: [Depth of Field](#11-depth-of-field)                                      |
+| 12: [Next steps](#what-next)                                                  |
+
 ## 1: Images
 
 What does a renderer render? Well... pictures. An image of a scene. So we're going to need some way to output an image in Rust. We're going to take advantage of the excellent crates.io ecosystem here and use a crate called [image](https://github.com/image-rs/image) that does pretty much exactly what it says on the tin: provide tools for working with images. Have a look over the docs over on [docs.rs](https://docs.rs/image/latest/image/) and have a think about how you might go about creating a new image.
@@ -363,7 +378,7 @@ Note how the top of our little sphere is a similar colour to the top of our big 
 
 You might have noticed the slightly jagged edges on your sphere. This isn't the case with real cameras, because the edge pixels are a blend of the foreground and background. To achieve this, we're going to add antialiasing, which we'll acheive by taking multiple samples of each pixel and averaging them out.
 
-### 6.1
+### Task 6.1
 
 So that each sample isn't identical, we're going to slightly randomise the ray directions within each pixel, for which we will use our old friend, the `rand` crate. Add it to your package manifest. `rand::random::<T>()` is a generic function that will return a random `T`. In case of floats, `rand::random::<f64>()` returns a random number $0 \leq x < 1$.
 
@@ -373,7 +388,7 @@ Add a variable `let samples = n` to the top of `main`. Update the render loop to
 
 ![](./img/6-1.png)
 
-### 6.2
+### Task 6.2
 
 Now seems like as good a time as any to abstract the camera out into it's own type. Create a new file `camera.rs`, and in it add a `Camera` struct, that contains:
 
@@ -385,7 +400,7 @@ Add a function to return the default camera, with the exact same configuration a
 
 Check you haven't introduced any bugs by making sure your render is the same as before.
 
-## 6.3
+### Task 6.3
 
 Taking 100 samples of each pixels is probably making your renderer start to chug again. If it's really taking too long, try dropping the number of samples, but we can add a progress bar as a nice little touch to help us see how long its got left. We're going to use another crate: [`indicatif`](https://docs.rs/indicatif/latest/indicatif/).
 
@@ -540,7 +555,7 @@ Clear materials such as water and glass are [dielectrics](https://en.wikipedia.o
 Refraction is described by Snell's law:
 
 $$
-\eta \sin \theta = \theta ' \sin (\theta ')
+\eta \sin \theta = \eta ' \sin (\theta ')
 $$
 
 Where $\theta$ and $\theta '$ are angles from the normal, and $\eta$ and $\eta '$ are the refractive indices of the two materials. We want to solve for $\theta '$, to get the angle of our new ray.
@@ -581,17 +596,17 @@ Write a small helper function in `material.rs` to return the direction of the re
 
 ### Task 9.2
 
-You can refract rays, so let's add a dielectric material that does just that with it's scatter method. Create a new struct `Dielectric` that with a single field, it's refraction ratio ($\frac{\eta}{\eta '}$). Create a new `Material` impl for it, such that `scatter` returns a new reflected (technically it's refracted now) ray with a colour attenutation of 1 (no attenuation), and direction vector calculated by your refract function. Don't forget to normalise your incident ray before using it, as we made the assumption that $\mathbf{a} = \mathbf{b} = 1$ when we did the maths above.
+You can refract rays, so let's add a dielectric material that does just that with it's scatter method. Create a new struct `Dielectric` with a single field, it's refraction ratio ($\frac{\eta}{\eta '}$). Create a new `Material` impl for it, such that `scatter` returns a new reflected (\*technically it's refracted now) ray with a colour attenutation of 1 (no attenuation), and direction vector calculated by your refract function. Don't forget to normalise your incident ray before using it, as we made the assumption that $\mathbf{a} = \mathbf{b} = 1$ when we did the maths above.
 
 An interesting thing to note is that if your ray comes from outside the sphere (ie, `hit.front_face == true`), then you will need to set the refraction ratio to be it's reciprocal, as $\eta$ and $\eta '$ are flipped.
 
-Update the scene to change the left sphere to be dielectrics with ratios of 1.5, then render it and see what you get.
+Update the scene to change the left sphere to be a dielectric with a ratio of 1.5 (roughly glass), then render it and see what you get.
 
 ![](./img/9-2.png)
 
 ### Task 9.3
 
-That doesn't look right, which is because there's a flaw in our approximations.
+That _might_ not look quite right, which is because there's a flaw in our approximations.
 
 When the ray is going from a material with a high refractive index to one with a lower one, there is no solution so Snell's law. Referring back to it:
 
@@ -605,7 +620,7 @@ $$
 \sin\theta ' = \frac{1.5}{1.0} \sin \theta
 $$
 
-But the value of $\sin\theta ' $ cannot be greater than 1, so the equality is broken and the solution does not exist, so the glass cannot refract. In this case the ray _must_ be reflected, which gives us the phenomenon known as total internal reflection.
+But the value of $\sin\theta ' $ cannot be greater than 1, so the equality is broken and the solution does not exist: the glass cannot refract. In this case the ray _must_ be reflected, which gives us the phenomenon known as total internal reflection.
 
 Update `Dielectric::scatter` to account for this, implementing total internal reflection when it cannot refract. You'll need to calculate both $\cos\theta = \mathbf{R}\cdot\mathbf{n}$ and $\sin\theta = \sqrt{1 - \cos^2 \theta}$, then if $\frac{\eta}{\eta '}\sin\theta > 1.0$, reflect instead of refract.
 
@@ -613,12 +628,34 @@ You should get something that looks a bit more correct:
 
 ![](./img/9-3.png)
 
-If you can't see much of a difference between the two for this scene, I wouldn't blame you. Play around with the scenes to see if you can spot the differences in the models, and take solace in the fact that your model is more correct.
+If you can't see much of a difference between the two for this scene, I wouldn't blame you. For the example scene, total internal reflection is never really visible as it will only happen as a ray tries to go from glass to air, so play around with the scene and see if you can see the difference.
 
 ### Task 9.4
 
+Let's play around with our glass model again. Real glass has a reflectivity that varies with angle (look at a window form a steep angle and it becomes more of a mirror). We're going to implement this behaviour using a neat polynomial approximation called the [Schlick approximation](https://en.wikipedia.org/wiki/Schlick%27s_approximation) (because the [actual equation](https://en.wikipedia.org/wiki/Fresnel_equations) is very big and a bit scary).
+
+The reflectance coefficient, $R$ can be approximated by:
+
+$$
+R (\theta) = R_0 + (1-R_0)(1-\cos\theta)^5
+$$
+
+where
+
+$$
+R_0 = \left( \frac{1-n}{1+n} \right)^2
+$$
+
+$n$ is the refractive index of the material, and $\theta$ is the angle between the normal and the incident light ray. Implement a function that calculates $R(\theta)$, taking $\theta$ and $n$ as parameters.
+
+We'll use the function by checking if $R(\theta)$ is greater than a random double every time we call `Dielectric::scatter`, and reflect instead of refract if so. You should also still be reflecting if the conditions for total internal reflection are met.
+
+Notice how the sphere looks a little fuzzier around the edges, and a bit more realistic?
+
+![](./img/9-4.png)
+
 ## 10: Positionable Camera
 
-## 11: Defocus Blur
+## 11: Depth of Field
 
 ## What next?
