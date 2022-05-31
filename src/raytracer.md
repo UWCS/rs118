@@ -694,7 +694,7 @@ We can use vector cross products to form an [orthonormal basis](https://en.wikip
 - $u$ is the unit vector of the cross product $v_{up} \times w$
 - $v$ is the cross product $w \times u$
 
-Update the camera `new()` function to take `look_from` and `look_at` points as parameters, as well as a `vup` vector. Calculate `u`, `v`, and `w`, making sure to normalise them all. The new camera origin is `look_from`, and the new horizontal/vertical vectors are `u` and `v` scaled to the image size. The lower left corner of the viewport is calculated as before, but the distance from the origin is now `w` instead of just `1.0`.
+Update the camera `new()` function to take `look_from` and `look_at` points as parameters, as well as a `vup` vector. Calculate `u`, `v`, and `w`, making sure to normalise them all. The new camera origin is `look_from`, and the new horizontal/vertical vectors are `u` and `v` scaled to the image size. The top left corner of the viewport is calculated as before, but the distance from the origin is now `w` instead of just `1.0`.
 
 Change the scene to the following:
 
@@ -713,5 +713,110 @@ You can zoom in a bit too. Change the camera settings to a 20 degree FoV:
 ![](./img/10-2-2.png)
 
 ## 11: Depth of Field
+
+Our final feature for now is implementing depth of field, or defocus blur. in the camera. Depth of field is the distance between the nearest and furthest objects in an image, and anything too far away or too close up will appear blurred, as it will be out of focus.
+
+There is a plane in our image where everything in that plane will be in perfect focus, and everything closer or further will blur. The distance between this focus plane and our camera lens is the focus distance. Real cameras have complex compound lenses, but we will use a simple thin lens approximation, more similar to how the eye works:
+
+![](https://raytracing.github.io/images/fig-1.17-cam-lens.jpg)
+
+We'll implement this by making the origin of each ray a random point within a disc centered on the `look_from` point, to model a lens. The larger the disc (lens), the larger the defocus blur.
+
+We'll need a simple function to generate a random point within a unit circle, so using a similar technique as we did earlier, write a function to generate a vector with random `x` and `y` components with `z=0` that lies within a unit circle.
+
+Update `Camera::new()` to take an aperture width (lens size) and focus distance as parameters. The horizontal and vertical image size vectors should be scaled by the focus distance, and the top left corner should be moved backwards by scaling `w` by the focus distance too. Add fields to the `Camera` struct to store `u` and `v`, as well as the lens radius (half the aperture width).
+
+`Camera::get_ray()` needs updating to randomise the ray origins. Start by generating a random point within the lens $R$, then calculate the new ray origin as $O = origin + u \times R_x + v \times R_y$. The position of the target pixel and can then be calculated as before to generate the ray.
+
+Update the camera to the following settings:
+
+- `look_from` $(3, 3, 2)$
+- `look_at` $(0, 0, -1)$
+- `vup` $(0, 1, 0)$
+- FoV 20
+- Aspect ratio 16/9
+- Aperture 2.0
+- Focus distance as the length between `look_from` and `look_at`
+
+The focus centre of the blue sphere lies in the focus plane so that is in focus, but the other two are blurred, as they are out of focus:
+
+![](./img/11.png)
+
+This specific scene looks a bit rubbish, so let's do one nicer.
+
+## 12: A Final Render
+
+So our ray tracer now has everything we need to make the procedurally generated image I showed you at the very top. I'll just give you the code to generate the scene because writing out a description of how to do this would be not very practical.
+
+```rust, noplayground
+fn random_scene() -> Scene {
+    let mut objects: Scene = vec![];
+
+    let ground = Box::new(Sphere::new(
+        v!(0, -1000, 0),
+        1000.0,
+        Lambertian::new(v!(0.5, 0.5, 0.5)),
+    ));
+    objects.push(ground);
+
+    for a in -11..11 {
+        for b in -11..11 {
+            let a = a as f64;
+            let b = b as f64;
+            let material_choice: f64 = rand::random();
+            let center = v!(
+                a + 0.9 * rand::random::<f64>(),
+                0.2,
+                b + 0.9 * rand::random::<f64>()
+            );
+
+            if material_choice < 0.8 {
+                //diffuse
+                let material = Lambertian::new(v!(rand::random::<f64>()));
+                objects.push(Box::new(Sphere::new(center, 0.2, material)));
+            } else if material_choice < 0.95 {
+                //metal
+                let colour = v!(rand::random::<f64>() / 2.0 + 0.5);
+                let fuzz = rand::random::<f64>() / 2.0;
+                let material = Metal::new(colour, fuzz);
+                objects.push(Box::new(Sphere::new(center, 0.2, material)));
+            } else {
+                //glass
+                objects.push(Box::new(Sphere::new(center, 0.2, Dielectric::new(1.5))));
+            }
+        }
+    }
+
+    objects.push(Box::new(Sphere::new(
+        v!(0, 1, 0),
+        1.0,
+        Dielectric::new(1.5),
+    )));
+    objects.push(Box::new(Sphere::new(
+        v!(-4, 1, 0),
+        1.0,
+        Lambertian::new(v!(0.4, 0.2, 0.1)),
+    )));
+    objects.push(Box::new(Sphere::new(
+        v!(4, 1, 0),
+        1.0,
+        Metal::new(v!(0.7, 0.6, 0.5), 0.0),
+    )));
+    objects
+}
+```
+
+Use the following camera and image settings:
+
+- Image width of 1200 pixels
+- `look_from` $(13, 2, 3)$
+- `look_at` $(0, 0, 0)$
+- `vup` $(0, 1, 0)$
+- FoV 20
+- Aspect ratio 1.5
+- Aperture 0.1
+- Focus distance 10
+
+![](./img/final-render-2.png)
 
 ## What next?

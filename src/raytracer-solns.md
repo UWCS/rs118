@@ -932,4 +932,161 @@ let scatter_direction = if (ratio * sin_theta > 1.0)
 
 ## 10: Positionable Camera
 
+### 10.1
+
+The `new()` method for the camera:
+
+```rust, noplayground
+pub fn new(fov: f64, aspect_ratio: f64) -> Self {
+    let theta = fov.to_radians();
+    let h = f64::tan(theta / 2.0);
+    let view_height = 2.0 * h;
+    let view_width = aspect_ratio * view_height;
+    let focal_length = 1.0;
+
+    let origin: Point = v!(0, 0, 0);
+    let horizontal = v!(view_width, 0, 0);
+    let vertical = v!(0, -view_height, 0);
+
+    let top_left: Point = origin - horizontal / 2.0 - vertical / 2.0 - v!(0, 0, focal_length);
+
+    Camera {
+        origin,
+        top_left,
+        horizontal,
+        vertical,
+    }
+}
+```
+
+### 10.2
+
+More changes to `Camera::new()`:
+
+```rust, noplayground
+pub fn new(look_from: Point, look_at: Point, vup: Vec3, fov: f64, aspect_ratio: f64) -> Self {
+    let theta = fov.to_radians();
+    let h = f64::tan(theta / 2.0);
+    let view_height = 2.0 * h;
+    let view_width = aspect_ratio * view_height;
+
+    let w = (look_from - look_at).normalise();
+    let u = vup.cross(&w).normalise();
+    let v = w.cross(&u);
+
+    let origin = look_from;
+    let horizontal = view_width * u;
+    let vertical = -view_height * v;
+
+    let top_left: Point = origin - horizontal / 2.0 - vertical / 2.0 - w;
+
+    Camera {
+        origin,
+        top_left,
+        horizontal,
+        vertical,
+    }
+}
+```
+
+The code for the new scene too, because it's long:
+
+```rust, noplayground
+let camera = camera::Camera::new(v!(-2, 2, 1), v!(0, 0, -1), v!(0, 1, 0), 20.0, 16.0/9.0);
+
+let objects: Scene = vec![
+    Box::new(Sphere::new(
+        v!(0, 0, -1),
+        0.5,
+        Lambertian::new(v!(0.1, 0.2, 0.5)),
+    )),
+    Box::new(Sphere::new(
+        v!(-1.0, 0.0, -1.0),
+        0.5,,
+        Dielectric::new(1.5))),
+    Box::new(Sphere::new(
+        v!(1.0, 0.0, -1.0),
+        0.5,
+        Metal::new(v!(0.8, 0.6, 0.2), 0.0),
+    )),
+    Box::new(Sphere::new(
+        v!(0, -100.5, -1),
+        100.0,
+        Lambertian::new(v!(0.8, 0.8, 0.0)),
+    )),
+];
+```
+
 ## 11: Defocus Blur
+
+The random vector in a unit circle function:
+
+```rust, noplayground
+fn random_in_unit_circle() -> Vec3 {
+    //want random numbers -1 to 1
+    let dist = rand::distributions::Uniform::new_inclusive(-1.0, 1.0);
+    let mut rng = rand::thread_rng();
+    loop {
+        let v = v!(dist.sample(&mut rng), dist.sample(&mut rng), 0);
+        //if the vector lies in the unit sphere
+        if v.len() < 1.0 {
+            //normalise so it lies *on* the sphere
+            break v.normalise();
+        }
+    }
+}
+```
+
+The updated `Camera::new()`.
+
+```rust, noplayground
+pub fn new(
+    look_from: Point,
+    look_at: Point,
+    vup: Vec3,
+    fov: f64,
+    aspect_ratio: f64,
+    aperture: f64,
+    focus_distance: f64,
+) -> Self {
+    let theta = fov.to_radians();
+    let h = f64::tan(theta / 2.0);
+    let view_height = 2.0 * h;
+    let view_width = aspect_ratio * view_height;
+
+    let w = (look_from - look_at).normalise();
+    let u = vup.cross(&w).normalise();
+    let v = w.cross(&u);
+
+    let origin = look_from;
+    let horizontal = view_width * u * focus_distance;
+    let vertical = -view_height * v * focus_distance;
+
+    let top_left: Point = origin - horizontal / 2.0 - vertical / 2.0 - w * focus_distance;
+
+    let lens_radius = aperture / 2.0;
+    Camera {
+        origin,
+        top_left,
+        horizontal,
+        vertical,
+        u,
+        v,
+        lens_radius,
+    }
+}
+```
+
+And the updated `Camera::get_ray()`. Note how the parameters have been changed from `(u, v)` to `(s, t)`, because `u` and `v` now refer to the camera geometry instead of pixel positions.
+
+```rust, noplayground
+pub fn get_ray(&self, s: f64, t: f64) -> Ray {
+        let rand = random_in_unit_circle() * self.lens_radius;
+        let origin = self.origin + self.u * rand.x + self.v * rand.y;
+
+        let px_position = self.top_left + s * self.horizontal + t * self.vertical;
+
+        //return the ray pointing at those pixels from camera origin
+        Ray::new(origin, px_position - origin)
+    }
+```
