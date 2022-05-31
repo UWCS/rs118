@@ -1,6 +1,6 @@
 # Raytracer Project
 
-For those of you not familiar with raytracing, it's a 3d graphics rendering technique that works by modelling light rays that's used becoming more common as a technique in modern gaming (thanks to NVIDIA). Ray tracing is a bit of an umbrella term, but what we're gonna build is technically a path tracer, and a fairly general one. You'll eventually end up with an image something like this:
+For those of you not familiar with raytracing, it's a 3D graphics rendering technique that works by modelling light rays that's used becoming more common as a technique in modern gaming (thanks to NVIDIA). Ray tracing is a bit of an umbrella term, but what we're gonna build is technically a path tracer, and a fairly general one. You'll eventually end up with an image something like this:
 
 ![](./img/final-render.png)
 
@@ -655,6 +655,62 @@ Notice how the sphere looks a little fuzzier around the edges, and a bit more re
 ![](./img/9-4.png)
 
 ## 10: Positionable Camera
+
+Cameras are hard, and there's a lot of geometry here so follow closely.
+
+## 10.1
+
+We'll start by allowing an adjustable field of view (FoV): the angle that can be seen through camera. The image isn't square so the FoV will be different horizontally and vertically. We'll specify the vertical one in degrees.
+
+The image below shows our FoV angle $\theta$ coming from the origin and looking into the $z=-1$ plane, same as before. $h$ is therefore the height of our viewport, $h = \tan \frac{\theta}{2}$. The total height of our image will be `2 * h`, and the width will be `height * aspect_ratio`.
+
+![](https://raytracing.github.io/images/fig-1.14-cam-view-geom.jpg)
+
+Create a `new()` function for `Camera` to take an FoV and aspect ratio as arguments, and then calculate the viewport width and height instead of hardcoding them. Make sure you check your angle units!
+
+Update your scene to use a camera with a 90 degree vertical FoV and 16:9 aspect ratio. Delete all the current objects, and add two spheres:
+
+- Centre $(\frac{-\pi}{4},0,-1)$, radius $\frac{\pi}{4}$, blue lambertian material
+- Centre $(\frac{\pi}{4},0,-1)$, radius $\frac{\pi}{4}$, red lambertian material
+
+Your image should look like this, a wide-angle view of the two spheres. Play around with the FoV and see what it looks like. Making it wider will zoom out on the spheres, and narrower will zoom in.
+
+![](./img/10-1.png)
+
+## 10.2
+
+The next step is being able to move the camera to wherever we want. Consider two points: `look_from`, the position of the camera where we are looking from; and `look_at`, the point we wish to look at.
+
+![](https://raytracing.github.io/images/fig-1.15-cam-view-dir.jpg)
+
+This gives us the vector that is facing the camera, but we still need to specify the roll, or tilt of the camera. Think about it as if you're looking from your eyes to a point, but you can still rotate your head about your nose. We need an "up" vector for the camera, which can be any vector orthogonal to the view direction (we can actually just use any vector we want, and then project it onto the plane). This will be the "view up" vector, $v_{up}$.
+
+We can use vector cross products to form an [orthonormal basis](https://en.wikipedia.org/wiki/Orthonormal_basis) $(u, v, w)$ to describe our camera's orientation: 3 unit vectors all at right angles to each other which describe the 3D space.
+
+![](https://raytracing.github.io/images/fig-1.16-cam-view-up.jpg)
+
+- $v_{up}$ is any vector that we specify
+- $w$ is the vector `look_from - look_at`, so $-w$ is our view direction
+- $u$ is the unit vector of the cross product $v_{up} \times w$
+- $v$ is the cross product $w \times u$
+
+Update the camera `new()` function to take `look_from` and `look_at` points as parameters, as well as a `vup` vector. Calculate `u`, `v`, and `w`, making sure to normalise them all. The new camera origin is `look_from`, and the new horizontal/vertical vectors are `u` and `v` scaled to the image size. The lower left corner of the viewport is calculated as before, but the distance from the origin is now `w` instead of just `1.0`.
+
+Change the scene to the following:
+
+- Sphere centre $(0,0,-1)$, Radius 0.5, Lambertian with colour $(0.1, 0.2, 0.5)$
+- Sphere centre $(-1,0,-1)$, Radius 0.5, Dielectric with ratio 1.5
+- Sphere centre $(1,0,-1)$, Radius 0.5, Metal with colour $(0.8,0.6,0.2)$ and 0 fuzziness
+- Sphere centre $(0,-100.5,-1)$, Radius 100, Lambertian with colour $(0.8, 0.8, 0)$
+- Camera looking from $(-2, 2, 1)$ to $(0, 0, -1)$ with `vup` $(0, 1, 0)$, 90 degree FoV and 16/9 aspect ratio
+
+Your scene, as viewed from far away, should look like this:
+
+![](./img/10-2-1.png)
+
+You can zoom in a bit too. Change the camera settings to a 20 degree FoV:
+
+![](./img/10-2-2.png)
 
 ## 11: Depth of Field
 
