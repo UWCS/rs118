@@ -849,7 +849,7 @@ let reflection = reflect(incident_ray.direction, &hit.normal) + self.fuzz * Vec3
 
 ## 9: Dielectrics
 
-## 9.1
+### 9.1
 
 The `refract` function should look like this:
 
@@ -862,7 +862,7 @@ fn refract(incident: Vec3, normal: &Vec3, ratio: f64) -> Vec3 {
 }
 ```
 
-## 9.2
+### 9.2
 
 `Dielectric` and its `Material` impl:
 
@@ -882,7 +882,7 @@ impl Material for Dielectric {
 }
 ```
 
-## 9.3
+### 9.3
 
 The updated `Dielectric::scatter` method:
 
@@ -905,6 +905,28 @@ fn scatter(&self, incident_ray: &Ray, hit: &Hit) -> Option<Reflection> {
         ray: out_ray,
         colour_attenuation: v!(1),
     })
+}
+```
+
+### 9.4
+
+The reflectance function for the Schlick approximation:
+
+```rust, noplayground
+fn reflectance(cos_theta: f64, n: f64) -> f64 {
+    let r0 = f64::powi((1.0 - n) / (1.0 + n), 2);
+    r0 + (1.0 - r0) * f64::powi(1.0 - cos_theta, 5)
+}
+```
+
+The `if` expression that binds to `scatter_direction` needs updating to add an extra condition for reflectance:
+
+```rust, noplayground
+let scatter_direction = if (ratio * sin_theta > 1.0)
+    || reflectance(cos_theta, ratio) > rand::random() {
+    //reflect
+} else {
+    //refract
 }
 ```
 
