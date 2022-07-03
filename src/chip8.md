@@ -4,7 +4,9 @@ CHIP-8 is an interpreted programming language, developed by Joseph Weisbecker. I
 
 In short, its a really basic assembly language-type specification that lets people build neat games, and we're going to build an interpreter for it, applying some of the Rust we've learned so far.
 
-Our emulator is available on [crates.io](https://crates.io/crates/rs118-chip8), so you can install it with `cargo install rs118-chip8` to have a play with it so you can see what your final product should look like. Plenty of roms are available online, we recommend [Space Invaders](LINK) and [Tetris](LINK)
+Our emulator is available on [crates.io](https://crates.io/crates/rs118-chip8), so you can install it with `cargo install rs118-chip8` to have a play with it so you can see what your final product should look like. Plenty of roms are available online, we recommend [Space Invaders](https://github.com/UWCS/rs118-chip8/blob/main/roms/Space%20Invaders.ch8) and [Tetris](https://github.com/UWCS/rs118-chip8/blob/main/roms/Tetris.ch8)
+
+Also, if you haven't read [chapter 7](https://doc.rust-lang.org/book/ch07-00-managing-growing-projects-with-packages-crates-and-modules.html) of The Book, I'd recommend doing so. Knowing how to lay out a Rust program is something that's often overlooked but super important.
 
 ## 0: Getting Started
 
@@ -33,7 +35,7 @@ The first one is the main driver function of your interpreter that you'll have t
 
 ### Task 0.3: Git Good
 
-Cargo initialises your new project as a git repo. It does this for a reason, to encourage you to use version control. If you aren't familiar with git, check out our git good resources on our website [LINKS??]. Make a new commit every time you change or try something, so you can keep track of what you've done and roll back if things break. Commit _at least_ when you've done each task.
+Cargo initialises your new project as a git repo. It does this for a reason, to encourage you to use version control. If you aren't familiar with git, check out our [Git Good resources](https://uwcs.co.uk/resources/git-good). Make a new commit every time you change or try something, so you can keep track of what you've done and roll back if things break. Commit _at least_ when you've done each task.
 
 ## 1: The Virtual Machine
 
@@ -51,7 +53,7 @@ Create a new struct type, adding any fields that you see fit. Also add an `impl`
 
 ### Task 1.3: The Interpeter Trait
 
-Before we can use the `run()` function from the `chip8_base` module, we need to tell the compiler that our interpreter is actually an interpreter, by implementing the Interpreter trait on it.
+Before we can use the `run()` function from the `chip8_base` module, we need to tell the compiler that our interpreter is actually an interpreter, by implementing the `Interpreter` trait on it.
 
 Import the `chip8_base::Interpreter` trait into your interpreter module, and use another `impl` block to implement the trait on your struct. Refer back to The Book if you need a refresher on the exact syntax for this.
 
@@ -102,9 +104,9 @@ Fix your fetch instruction to wrap back to 0 when it reaches the end of the addr
 
 ### Task 2.3: Decode
 
-So, we can fetch instructions, but what do we do with them? Well, execute them of course. CHIP-8 has 35 instructions with a varying number of operands. We could write a very very long chain of if/else expressions to decode each instruction, or we could use one long `match` expression. Each instruction has four nibbles, some of which are fixed to specify the opcode, some of which are operands of varying length (4, 8 or 12 bit). We can use this to write our `execute()` function (we'll roll decode and execute into one step for simplicity).
+So, we can fetch instructions, but what do we do with them? Well, execute them of course. CHIP-8 has 35 instructions with a varying number of operands. We could write a very very long chain of if/else expressions to decode each instruction, or we could use one `match` expression. Each instruction has four nibbles, some of which are fixed to specify the opcode, some of which are operands of varying length (4, 8 or 12 bit). We can use this to write our `execute()` function (we'll roll decode and execute into one step for simplicity).
 
-Write an `execute` method that uses a `match` expression to decode instructions. There's many ways you could go about this, but we recommend breaking each instruction down into it's four nibbles, then pattern matching on that. For now, make each of your match arms do nothing (return the unit type). Remember that `match` expressions in rust have to cover all possible types, so you can use a wildcard pattern (`_ => ()`) to cover any unimplemented instructions, or instructions that don't exist. **You don't have to do all of the instructions now, just one or two to get the general idea.**. Refer back to [The Book](https://doc.rust-lang.org/book/ch06-02-match.html) (Chapter 18 may also be useful) if you need a refresher on how `match` works.
+Write an `execute` method that uses a `match` expression to decode instructions. There's many ways you could go about this, but I recommend breaking each instruction down into it's four nibbles, then pattern matching on that. For now, make each of your match arms do nothing (return the unit type). Remember that `match` expressions in rust have to cover all possible types, so you can use a wildcard pattern (`_ => ()`) to cover any unimplemented instructions, or instructions that don't exist. **You don't have to do all of the instructions now, just one or two to get the general idea.**. Refer back to [The Book](https://doc.rust-lang.org/book/ch06-02-match.html) (Chapter 18 may also be useful) if you need a refresher on how `match` works.
 
 ### Task 2.4: Execute
 
@@ -112,11 +114,11 @@ So we've done fetch and decode, no prizes as to what comes next. Executing an in
 
 Fill in a few of the arms of your match statement to execute the decoded instructions. Think about how you're going to get the operands out of the instruction when they vary in width. Make your `step()` method call `execute()` so that the interpreter is now doing the fetch-decode-execute cycle. Implement the opcode `0x000` as a NOP (No-Operation) instruction, that simply does nothing.
 
-Congrats! You're successfully emulating a CPU* (*CHIP-8 is not a CPU but its an awful lot like one). Take a moment to appreciate how cool this is, even if it does nothing so far. What should be happening is the interpreter is fetching, decoding and executing `0x0000` instructions continually, which aren't real instructions but we added them because we could.
+Congrats! You're successfully emulating a CPU* (*CHIP-8 is not a CPU but its an awful lot like one). Take a moment to appreciate how cool this is, even if it does nothing so far. What should be happening is the interpreter is fetching, decoding and executing `0x0000` instructions continually, which aren't real instructions but I added them because I could.
 
 ## 3: The First Few Instructions
 
-In the last section, you implemented one or two random instructions of your choosing, plus our fictitious NOP instruction. Now, we're gonna talk you through implementing a few more, such that you can run a real program. There's an IBM test ROM that does nothing except display the IBM logo, but using only 6 instructions, so those are what we're gonna implement.
+In the last section, you implemented one or two random instructions of your choosing, plus our fictitious NOP instruction. Now, I'm gonna talk you through implementing a few more, such that you can run a real program. There's an IBM test ROM that does nothing except display the IBM logo, but using only 6 instructions, so those are what we're gonna implement.
 
 ### Task 3.1: 00E0 (clear screen)
 
@@ -160,7 +162,7 @@ Check the resources at the bottom (and also google for anything else you can fin
 
 ### Task 3.7: This Tutorial Not Sponsored By IBM
 
-Theoretically, you should be able to run the IBM ROM now CHANGE THIS LINK ([Link]([)](https://github.com/Joeyh021/rs118-chip8/blob/main/roms/IBM%20Logo.ch8)). But first you need a way to load it into memory. CHIP-8 Programs start at `0x200` in memory, so you need to write a method to load a ROM from disk into memory. [`std::fs::read`](https://doc.rust-lang.org/stable/std/fs/fn.read.html) will load a file from disk and return it as `Vec` of bytes, but how to get it into memory is up to you. You could add it to your `new()` function, or create a separate `load()` function. Make sure you properly handle the `Result` that the `fs::read` returns too, in case you give it a file that doesn't exist.
+Theoretically, you should be able to run the [IBM ROM](https://github.com/UWCS/rs118-chip8/blob/main/roms/IBM%20Logo.ch8) now. But first you need a way to load it into memory. CHIP-8 Programs start at `0x200` in memory, so you need to write a method to load a ROM from disk into memory. [`std::fs::read`](https://doc.rust-lang.org/stable/std/fs/fn.read.html) will load a file from disk and return it as `Vec` of bytes, but how to get it into memory is up to you. You could add it to your `new()` function, or create a separate `load()` function. Make sure you properly handle the `Result` that the `fs::read` returns too, in case you give it a file that doesn't exist.
 
 ### Task 3.8: Debugging
 
@@ -173,7 +175,7 @@ Writing unit tests to test each instruction in isolation is a good idea too. [Ch
 
 ## 4: The Rest
 
-Well, we've got this far. However, you still have about 30 instructions before you can say you're done. A few test ROMS can be found [here](ADD LINK) for testing all your instructions work. Remember, unit tests are your friend.
+Well, we've got this far. However, you still have about 30 instructions before you can say you're done. A few test ROMS can be found [here](https://github.com/UWCS/rs118-chip8/tree/main/roms) for testing all your instructions work. Remember, unit tests are your friend, have a look at some of the unit tests in our implementation if you're stuck on how to write these.
 
 Some advice:
 

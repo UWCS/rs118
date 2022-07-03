@@ -1,6 +1,6 @@
 # Raytracer Solutions
 
-The full solution is available on [Github](LINK HERE !TODO! ). Feel free to browse through the commit history to see the stages of how I built my solution.
+The full solution is available on [Github](https://github.com/uwcs/rs118-raytracer). Feel free to browse through the commit history to see the stages of how I built my solution.
 
 ## 1: Images
 

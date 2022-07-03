@@ -303,4 +303,4 @@ The `Eq` and `PartialEq` derives from earlier allow us to use the `==` operator 
 
 ## The Final Product
 
-The full code can be found on github: <https://github.com/Joeyh021/rs118-tic-tac-toe>
+The full code can be found on github: <https://github.com/uwcs/rs118-tic-tac-toe>

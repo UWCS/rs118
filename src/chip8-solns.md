@@ -297,6 +297,6 @@ You could also do this capturing `self` by mutable reference, or handle the I/O 
 
 You really are on your own here.
 
-Try to ask for help, check your resources, and debug properly first before going straight to the nuclear option of just copying it from my solution, but you can find the `rs118-chip8` implementation on Github: ADD LINK
+Try to ask for help, check your resources, and debug properly first before going straight to the nuclear option of just copying it from my solution, but you can find the `rs118-chip8` implementation [on Github](https://github.com/uwcs/rs118-chip8)
 
 Note that my solution is also far from perfect, so don't rely on it as a source of truth for CHIP-8 implementations!

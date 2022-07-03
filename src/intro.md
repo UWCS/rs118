@@ -16,4 +16,6 @@ fn main() {
 }
 ```
 
-The source for this book is available [on Github](LINK HERE), and contributions are welcome. This book, and all the code associated with RS118 is distributed under the terms of the MIT license. Copyright 2022 Joey Harrison & The University of Warwick Computing Society.
+The source for this book is available [on Github](https://github.com/uwcs/rs118), and contributions/corrections/suggestions/additions are welcome.
+
+This book, and all the code associated with RS118 is distributed under the terms of the MIT license. Copyright 2022 Joey Harrison & The University of Warwick Computing Society. If you use anything from this book or the associated GitHub repos, please give credit.
