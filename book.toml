@@ -8,10 +8,9 @@ title = "RS118: UWCS Learns Rust"
 [preprocessor.katex]
 
 [output.html]
-git-repository-url = "https://github.com/joeyh021/rs118"
+git-repository-url = "https://github.com/uwcs/rs118"
 preferred-dark-theme = "coal"
 preferred-light-theme = "rust"
-site-url = "/rs118/"
 
 
 [output.html.fold]
