@@ -18,8 +18,8 @@ jobs:
     - name: run deploy script on remote server
       uses: fifsky/ssh-action@master
       with:
-        command: source .bashrc && cd rs118 && git pull && mdbook build -d /compsoc/sites/rs118
+        command: cd rs118 && git pull && mdbook build -d /compsoc/sites/rs118
         host: ${{ secrets.HOST }}
         user: rs118
         key: ${{ secrets.PRIVATE_KEY}}
-    
+        args: "-tt"
