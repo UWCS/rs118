@@ -1,33 +1,25 @@
-name: Build Book
+name: Deploy on Server
 
 on:
   # Triggers the workflow on push or pull request events but only for the master branch
   push:
     branches: [ main ]
-
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
   build:
+    # The type of runner that the job will run on
     runs-on: ubuntu-latest
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
+    - name: run deploy script on remote server
+      uses: fifsky/ssh-action@master
+      with:
+        command: cd rs118 && git pull && mdbook build -d /compsoc/sites/rs118
+        host: ${{ secrets.HOST }}
+        user: rs118
+        key: ${{ secrets.PRIVATE_KEY}}
     
-      - uses: actions/checkout@v2
-      
-      # Setup mdBook
-      - name: Setup mdBook
-        uses: peaceiris/actions-mdbook@v1
-        with:
-          mdbook-version: 'latest'
-          
-      # install katex preprocessor
-      - run : cargo install mdbook-katex
-      # build book    
-      - run : mdbook build
-      
-      - name: Deploy
-        uses: peaceiris/actions-gh-pages@v3
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./book
