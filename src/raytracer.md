@@ -313,7 +313,7 @@ First, change your hit function to return the solution to the quadratic equation
 Next, re-write your colour function to do the following:
 
 - Check if the ray and sphere intersect
-  - If they do, use the `Ray::at()` function from earlier to find the exact point $P$ where, and then find the surface normal using $P - C$
+  - If they do, use the `Ray::at()` function from earlier to find the exact point $P$ where, and then find the surface normal using $\mathbf P - \mathbf C$
     - Normalise the surface normal and scale it to the range $0 \leq x \leq 1$
     - Return this as a colour to shade your sphere
   - If they do not, then just return then same background colour as before
@@ -345,15 +345,13 @@ We need to talk about surface normals again. The normal can either point outside
 
 To make this as easy as possible, we're going to make normals always point outward, and then store in the `Hit` struct which side of the object the ray hit. Add a boolean field called `front_face` to the struct, that will be `true` when the ray hits the outer surface, and `false` when it hits the inner surface.
 
-The normalised outer surface normal can be calculated by $(P - C)  * \frac{1}{r}$. We can then use a property of the dot product to detect which side the ray hit from:
+The normalised outer surface normal can be calculated by $\frac{1}{r} (\mathbf P- \mathbf C)$. We can then use a property of the dot product to detect which side the ray hit from:
 
 $$
 \frac{\mathbf x \cdot \mathbf y}{ |\mathbf x||\mathbf y| } = \cos \theta
 $$
 
 Where $\theta$ is the angle between the two vectors joined tip-to-tip. This means that if the dot product of two vectors is 0, they are perpendicular. If the product is positive the two are at angles of less than 90 degrees, and if negative they lie at angles of between 90 and 180 degrees. So, if `ray.direction.dot(outward_normal) > 0`, then the ray has hit from the inside and we need to invert our normal and set `front_face` to false.
-
-![](EXTRA DRAWING)
 
 Implement this logic in your code, making sure that in the current render `front_face` is always true. If there's any bugs in your implementation you might not catch them all now because we have no cases where `front_face` is false yet, so double and triple check your maths. You could shuffle the sphere and camera positions around to put the camera _inside_ the sphere, and see what your results look like.
 
