@@ -15,7 +15,7 @@ We're gonna need some types to represent things within our game. In a game with 
 
 ### Task 1.1
 
-Implement a simple data type to represent players. We could just use strings or numbers to do this, but structuring data properly is key to writing good Tust.
+Implement a simple data type to represent players. We could just use strings or numbers to do this, but structuring data properly is key to writing good Rust.
 
 Recall that we can use `struct`s and `enum`s to create our own data types. Which of these could be used to represent our a type with only two different values?
 
