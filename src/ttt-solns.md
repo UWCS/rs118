@@ -26,7 +26,8 @@ enum Player {
 
 Note that I've [`derive`](https://doc.rust-lang.org/book/ch05-02-example-structs.html?highlight=derive#adding-useful-functionality-with-derived-traits)d some traits on this type, which will come in handy later:
 
-- `Eq` and `PartialEq` are used for evaluating the equality of value of that type
+- `Debug` generates a string representation of the type for debugging, that can be used via the `dbg!()` macro
+- `Eq` and `PartialEq` are tell the compiler it can compare equality of the type using `==` and `!=`
 - `Copy` and `Clone` tells the compiler that it is free to copy the type all over the place
   - This means we don't have to worry about move semantics for now. That's a lesson for next time.
 

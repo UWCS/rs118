@@ -1,6 +1,6 @@
 # Tic-Tac-Toe!
 
-We're gonna use everything we learned to put together a neat little game of tic-tac-toe. I'm assuming you all know the rules. If you get stuck on any of the tasks, try to use your resources (The Book, Rust by Example, Google), or ask for someone to help talk you through it, before going straight to the solutions. Remember, the compiler is your friend and will try to tell you where to fix your code when you have an error, and `cargo check` and `cargo clippy` will provide some useful lints for preventing errors and writing good Rust.
+We're gonna use everything we learned to put together a neat little game of tic-tac-toe. I'm assuming you all know the rules. If you get stuck on any of the tasks, try to use your resources (The Book, Rust by Example, Google), or ask for someone to help talk you through it, before going straight to the solutions. Remember, the compiler is your friend and will try to tell you where to fix your code when you have an error, and always run `cargo clippy` and `cargo fmt`! (I recommend setting up vscode to do this for you on save)
 
 ## Task 0: `cargo new`
 
@@ -31,7 +31,7 @@ So we have some players and a game board, but what now? Well its no good if neit
 
 Create a new, empty instance of your game board type in main, and write some code to print the empty board. Experiment with manually adding some moves to the board and make sure your code can handle printing Xs and Os properly.
 
-You'll most likely want to iterate through your board array in some way, printing some other characters along with it. You'll need some code to print your `Player` type too (if you want to get fancy with this, check out the [`Display` trait](https://doc.rust-lang.org/rust-by-example/hello/print/print_display.html), but a simple `match` expression will likely do for now.)
+You'll most likely want to iterate through your board array in some way, printing some other characters along with it. You'll need some code to print your `Player` type too (if you want to get fancy with this, read the documentation for the [`Display` trait](https://doc.rust-lang.org/rust-by-example/hello/print/print_display.html), but a simple `match` expression with some `println!()`s will likely do for now.)
 
 ## Task 2: Gaming
 
@@ -69,4 +69,4 @@ Add some code to your game loop to see if a move leads to the player winning. If
 
 There are multiple cases to consider for a win: 3 rows, 3 columns, and the 2 diagonals. You could hard-code all 8 of these, or you could get fancy with some for loops. Up to you.
 
-**Note:** Rust might not allow you to compare the equality of two custom types so easily. This is also A Good Thing (tm) because the notion of equality is not so simple for all types, so much so that Rust splits it into two traits, `Eq` and `PartialEq`. You might want to derive them for your custom `Player` type to help with this. Traits, and deriving them, will be covered in more detail next time, but [a good overview](https://doc.rust-lang.org/book/appendix-03-derivable-traits.html) is given in The Book.
+**Note:** Rust might not allow you to compare the equality of two custom types so easily. This is also A Good Thing (tm) because the notion of equality is not so simple for all types, so much so that Rust splits it into two traits, `Eq` and `PartialEq`. You might want to derive them for your custom `Player` type to help with this, which will allow you to use the `==` and `!=` operators for your type. Traits, and deriving them, will be covered in more detail next time, but [a good overview](https://doc.rust-lang.org/book/appendix-03-derivable-traits.html) is given in The Book.
