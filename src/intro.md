@@ -8,13 +8,15 @@ This tutorial will heavily lean on and is adapted from [_The Rust Programming La
 - [The Reference](https://doc.rust-lang.org/stable/reference/) - This is a complete\* reference for the Rust language. It is quite detailed and technical, but very thorough.
 - [Rustlings](https://github.com/rust-lang/rustlings) - Lots of little exercises and examples to demonstrate specific concepts
 
-The code snippets in this documentation can be run using the play button in the top right corner of the code block. Try it:
+The code snippets in this book can be run using the play button in the top right corner, and also edited to allow you to interact with the examples. Try it now:
 
-```rust
+```rust, editable
 fn main() {
     println!("Hello, Ferris!");
 }
 ```
+
+I encourage you to play around with the snippets to help get a better understanding of how the compiler works.
 
 The source for this book is available [on Github](https://github.com/uwcs/rs118), and contributions/corrections/suggestions/additions are welcome.
 

@@ -15,3 +15,8 @@ preferred-light-theme = "rust"
 
 [output.html.fold]
 enable = true
+
+
+[output.html.playground]
+editable = true
+line-numbers = true
