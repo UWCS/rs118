@@ -20,7 +20,7 @@ Create a new cargo project, and open up the `Cargo.toml` file. Our emulator expo
 
 ```toml
 [dependencies]
-rs118-chip8 = "0.1.0"
+rs118-chip8 = "0.1"
 ```
 
 Take a look at the `chip8_base` library that the `rs118-chip8` crate exposes (the crate name and library name are slightly different, but don't worry about that too much, it's just a quirk of how I've written the crate). the documentation for it is available on [docs.rs](LINK). We can see that it exposes two type aliases, `Display` and `Keys`, and also an `Intepreter` trait. The idea is that you create your own interpreter by implementing the trait, and then the `run()` method will run it for you. This works because `run()` is written to accept any type that implements the `Interpreter` trait as an argument.
