@@ -18,6 +18,6 @@ fn main() {
 
 I encourage you to play around with the snippets to help get a better understanding of how the compiler works.
 
-The source for this book is available [on Github](https://github.com/uwcs/rs118), and contributions/corrections/suggestions/additions are welcome.
+The source for this book is available [on GitHub](https://github.com/uwcs/rs118), and contributions/corrections/suggestions/additions are welcome.
 
-This book, and all the code associated with RS118 is distributed under the terms of the MIT license. Copyright 2022 Joey Harrison & The University of Warwick Computing Society. If you use anything from this book or the associated GitHub repos, please give credit.
+This book and all the code associated with RS118 is distributed under the terms of the MIT licence, Copyright 2022 Joey Harrison & The University of Warwick Computing Society. If you use anything from this book or the associated GitHub repos, please give credit.
