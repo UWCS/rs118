@@ -1,0 +1,101 @@
+<svg viewBox="0 0 1000 1300" xmlns="http://www.w3.org/2000/svg">
+    <g class="graph" transform="translate(16.667 1241.677) scale(4.1667)">
+        <path fill="var(--bg)" stroke="transparent" d="M-4 4v-302h237V4H-4z" />
+        <g class="node">
+            <path fill="none" stroke="var(--fg)" d="M8-124h88" />
+            <text x="45.776" y="-129.8" font-family="Times,serif" font-size="14" fill="var(--fg)">s2</text>
+            <path fill="none" stroke="var(--fg)" d="M8-104v-20h52v20H8z" />
+            <text x="18.841" y="-109.8" font-family="Times,serif" font-size="14" fill="var(--fg)">name</text>
+            <path fill="none" stroke="var(--fg)" d="M60-104v-20h36v20H60z" />
+            <text x="62.841" y="-109.8" font-family="Times,serif" font-size="14" fill="var(--fg)">value</text>
+            <path fill="none" stroke="var(--fg)" d="M8-84v-20h52v20H8z" />
+            <text x="26.224" y="-89.8" font-family="Times,serif" font-size="14" fill="var(--fg)">ptr</text>
+            <path fill="none" stroke="var(--fg)" d="M60-84v-20h36v20H60zM8-64v-20h52v20H8z" />
+            <text x="25.448" y="-69.8" font-family="Times,serif" font-size="14" fill="var(--fg)">len</text>
+            <path fill="none" stroke="var(--fg)" d="M60-64v-20h36v20H60z" />
+            <text x="74.5" y="-69.8" font-family="Times,serif" font-size="14" fill="var(--fg)">5</text>
+            <path fill="none" stroke="var(--fg)" d="M8-44v-20h52v20H8z" />
+            <text x="10.683" y="-49.8" font-family="Times,serif" font-size="14" fill="var(--fg)">capacity</text>
+            <path fill="none" stroke="var(--fg)" d="M60-44v-20h36v20H60z" />
+            <text x="74.5" y="-49.8" font-family="Times,serif" font-size="14" fill="var(--fg)">5</text>
+        </g>
+        <g class="node">
+            <path fill="none" stroke="var(--fg)" d="M148.5-104v-20h37v20h-37z" />
+            <text x="151.448" y="-109.8" font-family="Times,serif" font-size="14" fill="var(--fg)">index</text>
+            <path fill="none" stroke="var(--fg)" d="M185.5-104v-20h36v20h-36z" />
+            <text x="188.341" y="-109.8" font-family="Times,serif" font-size="14" fill="var(--fg)">value</text>
+            <path fill="none" stroke="var(--fg)" d="M148.5-84v-20h37v20h-37z" />
+            <text x="163.5" y="-89.8" font-family="Times,serif" font-size="14" fill="var(--fg)">0</text>
+            <path fill="none" stroke="var(--fg)" d="M185.5-84v-20h36v20h-36z" />
+            <text x="200" y="-89.8" font-family="Times,serif" font-size="14" fill="var(--fg)">h</text>
+            <path fill="none" stroke="var(--fg)" d="M148.5-64v-20h37v20h-37z" />
+            <text x="163.5" y="-69.8" font-family="Times,serif" font-size="14" fill="var(--fg)">1</text>
+            <path fill="none" stroke="var(--fg)" d="M185.5-64v-20h36v20h-36z" />
+            <text x="200.393" y="-69.8" font-family="Times,serif" font-size="14" fill="var(--fg)">e</text>
+            <path fill="none" stroke="var(--fg)" d="M148.5-44v-20h37v20h-37z" />
+            <text x="163.5" y="-49.8" font-family="Times,serif" font-size="14" fill="var(--fg)">2</text>
+            <path fill="none" stroke="var(--fg)" d="M185.5-44v-20h36v20h-36z" />
+            <text x="201.555" y="-49.8" font-family="Times,serif" font-size="14" fill="var(--fg)">l</text>
+            <path fill="none" stroke="var(--fg)" d="M148.5-24v-20h37v20h-37z" />
+            <text x="163.5" y="-29.8" font-family="Times,serif" font-size="14" fill="var(--fg)">3</text>
+            <path fill="none" stroke="var(--fg)" d="M185.5-24v-20h36v20h-36z" />
+            <text x="201.555" y="-29.8" font-family="Times,serif" font-size="14" fill="var(--fg)">l</text>
+            <path fill="none" stroke="var(--fg)" d="M148.5-4v-20h37v20h-37z" />
+            <text x="163.5" y="-9.8" font-family="Times,serif" font-size="14" fill="var(--fg)">4</text>
+            <path fill="none" stroke="var(--fg)" d="M185.5-4v-20h36v20h-36z" />
+            <text x="200" y="-9.8" font-family="Times,serif" font-size="14" fill="var(--fg)">o</text>
+        </g>
+        <g class="edge">
+            <path fill="none" stroke="var(--fg)" d="M78-94h60.38" />
+            <path fill="var(--fg)" stroke="var(--fg)" d="m138.5-97.5 10 3.5-10 3.5v-7z" />
+        </g>
+        <g class="node">
+            <path fill="none" stroke="var(--fg)" d="M8-270h88" />
+            <text x="45.776" y="-275.8" font-family="Times,serif" font-size="14" fill="var(--fg)">s1</text>
+            <path fill="none" stroke="var(--fg)" d="M8-250v-20h52v20H8z" />
+            <text x="18.841" y="-255.8" font-family="Times,serif" font-size="14" fill="var(--fg)">name</text>
+            <path fill="none" stroke="var(--fg)" d="M60-250v-20h36v20H60z" />
+            <text x="62.841" y="-255.8" font-family="Times,serif" font-size="14" fill="var(--fg)">value</text>
+            <path fill="none" stroke="var(--fg)" d="M8-230v-20h52v20H8z" />
+            <text x="26.224" y="-235.8" font-family="Times,serif" font-size="14" fill="var(--fg)">ptr</text>
+            <path fill="none" stroke="var(--fg)" d="M60-230v-20h36v20H60zM8-210v-20h52v20H8z" />
+            <text x="25.448" y="-215.8" font-family="Times,serif" font-size="14" fill="var(--fg)">len</text>
+            <path fill="none" stroke="var(--fg)" d="M60-210v-20h36v20H60z" />
+            <text x="74.5" y="-215.8" font-family="Times,serif" font-size="14" fill="var(--fg)">5</text>
+            <path fill="none" stroke="var(--fg)" d="M8-190v-20h52v20H8z" />
+            <text x="10.683" y="-195.8" font-family="Times,serif" font-size="14" fill="var(--fg)">capacity</text>
+            <path fill="none" stroke="var(--fg)" d="M60-190v-20h36v20H60z" />
+            <text x="74.5" y="-195.8" font-family="Times,serif" font-size="14" fill="var(--fg)">5</text>
+        </g>
+        <g class="node">
+            <path fill="none" stroke="var(--fg)" d="M148.5-250v-20h37v20h-37z" />
+            <text x="151.448" y="-255.8" font-family="Times,serif" font-size="14" fill="var(--fg)">index</text>
+            <path fill="none" stroke="var(--fg)" d="M185.5-250v-20h36v20h-36z" />
+            <text x="188.341" y="-255.8" font-family="Times,serif" font-size="14" fill="var(--fg)">value</text>
+            <path fill="none" stroke="var(--fg)" d="M148.5-230v-20h37v20h-37z" />
+            <text x="163.5" y="-235.8" font-family="Times,serif" font-size="14" fill="var(--fg)">0</text>
+            <path fill="none" stroke="var(--fg)" d="M185.5-230v-20h36v20h-36z" />
+            <text x="200" y="-235.8" font-family="Times,serif" font-size="14" fill="var(--fg)">h</text>
+            <path fill="none" stroke="var(--fg)" d="M148.5-210v-20h37v20h-37z" />
+            <text x="163.5" y="-215.8" font-family="Times,serif" font-size="14" fill="var(--fg)">1</text>
+            <path fill="none" stroke="var(--fg)" d="M185.5-210v-20h36v20h-36z" />
+            <text x="200.393" y="-215.8" font-family="Times,serif" font-size="14" fill="var(--fg)">e</text>
+            <path fill="none" stroke="var(--fg)" d="M148.5-190v-20h37v20h-37z" />
+            <text x="163.5" y="-195.8" font-family="Times,serif" font-size="14" fill="var(--fg)">2</text>
+            <path fill="none" stroke="var(--fg)" d="M185.5-190v-20h36v20h-36z" />
+            <text x="201.555" y="-195.8" font-family="Times,serif" font-size="14" fill="var(--fg)">l</text>
+            <path fill="none" stroke="var(--fg)" d="M148.5-170v-20h37v20h-37z" />
+            <text x="163.5" y="-175.8" font-family="Times,serif" font-size="14" fill="var(--fg)">3</text>
+            <path fill="none" stroke="var(--fg)" d="M185.5-170v-20h36v20h-36z" />
+            <text x="201.555" y="-175.8" font-family="Times,serif" font-size="14" fill="var(--fg)">l</text>
+            <path fill="none" stroke="var(--fg)" d="M148.5-150v-20h37v20h-37z" />
+            <text x="163.5" y="-155.8" font-family="Times,serif" font-size="14" fill="var(--fg)">4</text>
+            <path fill="none" stroke="var(--fg)" d="M185.5-150v-20h36v20h-36z" />
+            <text x="200" y="-155.8" font-family="Times,serif" font-size="14" fill="var(--fg)">o</text>
+        </g>
+        <g class="edge">
+            <path fill="none" stroke="var(--fg)" d="M78-240h60.38" />
+            <path fill="var(--fg)" stroke="var(--fg)" d="m138.5-243.5 10 3.5-10 3.5v-7z" />
+        </g>
+    </g>
+</svg>
