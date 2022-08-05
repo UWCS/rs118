@@ -55,7 +55,7 @@ What kind of loop do you want (`for`/`while`/`loop`), and when do you want to br
 
 ### Task 2.2
 
-Now we have player input, we need to use it to update the state of the game. Use the input to add the player's turn to the board, if it is a valid guess.
+Now we have player input, we need to use it to update the state of the game. Use the input to add the player's turn to the board, if it is a valid guess. Have a look at `std::io` for input. Numbering squares left-to-right top-to-bottom works well, but if you want to be fancy, how about some chess board style labelling?
 
 What constitutes valid input for a turn? You have 9 squares on your game board, and you can't play where there is already a square in that space. If the guess isn't valid, you'll need to get the player to input a new guess.
 
@@ -69,4 +69,4 @@ Two players should be able to play your game now, taking turns, and specifying o
 
 Add some code to your game loop to see if a move leads to the player winning. If so, print a message to indicate this, and exit the game.
 
-There are multiple cases to consider for a win: 3 rows, 3 columns, and the 2 diagonals. You could hard-code all 8 of these, or you could get fancy with some for loops. Up to you.
+There are multiple cases to consider for a win: 3 rows, 3 columns, and the 2 diagonals. You could hard-code all 8 of these, or save some sanity with some `for` loops. Up to you.

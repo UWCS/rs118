@@ -33,7 +33,7 @@ Note that I've [`derive`](https://doc.rust-lang.org/book/ch05-02-example-structs
 
 ## Task 1.2
 
-There's a few different ways to go about this. You could use either a 2-d array, or 1-d array, whichever you prefer. The way I opted to use a 2-d array of `Option<Player>`, which represents either `Some(Player)`, or `None`, when the square is empty. I then wrapped that array in a struct, which also holds who's turn it currently is, and if there is currently a winner. This allows the struct to represent more the state of the entire game than just the board, but this is entirely up to you.
+There's a few different ways to go about this. You could use either a 2d array, or 1d array, whichever you prefer. The way I opted to use a 2-d array of `Option<Player>`, which represents either `Some(Player)`, or `None`, when the square is empty. I then wrapped that array in a struct, which also holds who's turn it currently is, and if there is currently a winner. This allows the struct to represent more the state of the entire game than just the board, but this is entirely up to you.
 
 ```rust,noplayground
 struct Board {
