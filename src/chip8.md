@@ -108,7 +108,7 @@ Fix your fetch instruction to wrap back to 0 when it reaches the end of the addr
 
 So, we can fetch instructions, but what do we do with them? Well, execute them of course. CHIP-8 has 35 instructions with a varying number of operands. We could write a very very long chain of if/else expressions to decode each instruction, or we could use one `match` expression. Each instruction has four nibbles, some of which are fixed to specify the opcode, some of which are operands of varying length (4, 8 or 12 bit). We can use this to write our `execute()` function (you could separate decode and execute, but it's easiest to combine them for simplicity).
 
-Write an `execute` method that uses a `match` expression to decode instructions. Just pattern match for now, no need to execute anything yet (that's spoilers for part 2.4). There are many ways you could go about this, but I recommend breaking each instruction down into it's four nibbles, then pattern matching on that. For now, make each of your match arms do nothing (return the unit type). Remember that `match` expressions in rust have to cover all possible types, so you can use a wildcard pattern (`_ => ()`) to cover any unimplemented instructions, or instructions that don't exist. **You don't have to do all of the instructions now,** just maybe match the essentials for later, see section 3 and check the advice at the bottom for a little help. Refer back to [The Book](https://doc.rust-lang.org/book/ch06-02-match.html) (Chapter 18 may also be useful) if you need a refresher on how `match` works.
+Write an `execute` method that uses a `match` expression to decode instructions. Just pattern match for now, no need to execute anything yet (that's spoilers for part 2.4). There are many ways you could go about this, but I recommend breaking each instruction down into it's four nibbles, then pattern matching on that. For now, make each of your match arms do nothing (return the unit type). Remember that `match` expressions in rust have to cover all possible types, so you can use a wildcard pattern (`_ => ()`) to cover any unimplemented instructions, or instructions that don't exist. **You don't have to do all of the instructions now,** just maybe have a look at the essentials for later (see section 3) and check the advice at the bottom for a little help. Refer back to [The Book](https://doc.rust-lang.org/book/ch06-02-match.html) (Chapter 18 may also be useful) if you need a refresher on how `match` works.
 
 ### Task 2.4: Execute
 
@@ -132,13 +132,13 @@ The `step()` function should return `Some(Display)` when the display is updated,
 
 This instruction has one operand, `nnn`, a 12-bit address that should be pushed onto the stack. Rust doesn't have a 12-bit number type, so pick another type accordingly and include checks/wrapping to make sure that the value remains within 12 bits. The program counter should simply be set to the value of the operand.
 
-### Task 3.3: 6xnn (set register Vx)
+### Task 3.3: 6xkk (set register Vx)
 
-CHIP-8 has 16 general purpose 8-bit registers, numbered `V0` to `VF`. `VF` is often used for special flags from some operations. This instruction has two operands, `x`, the register, and `nn`, a byte. The byte should be put in the register. Easy.
+CHIP-8 has 16 general purpose 8-bit registers, numbered `V0` to `VF`. `VF` is often used for special flags from some operations. This instruction has two operands, `x`, the register, and `kk`, a byte. The byte should be put in the register. Easy.
 
-### Task 3.4: 7xnn (add to register Vx)
+### Task 3.4: 7xkk (add to register Vx)
 
-Add the value `nn` to the value in the register `Vx`. This instruction may overflow (causing a panic), so make sure to handle overflow/wrapping correctly.
+Add the value `kk` to the value in the register `Vx`. This instruction may overflow (causing a panic), so make sure to handle overflow/wrapping correctly.
 
 [**Hint**](https://doc.rust-lang.org/std/primitive.u8.html#method.wrapping_add)
 
