@@ -43,7 +43,7 @@ Only a few of the fields you need are included here, you'll need to add a few mo
 ```rust,noplayground
 impl VM {
     pub fn new() -> Self {
-        Cpu {
+        VM {
             memory: [0; 4096],
             pc: 0,
             registers: [0; 16],
@@ -120,7 +120,7 @@ impl Interpreter for VM {
 
 ## Task 1.7
 
-For a clock rate of 700Hz, you can create a `Duration` using `Duration::from_secs_f64(1_f64/700_f64)`. Don't hardcode this though. The "proper" way to do it is modify your `new()` method to accept a clock speed, then store the duration in the struct to return when requested.
+For a clock rate of 700Hz, you can create a `Duration` using `Duration::from_secs_f64(1_f64/700_f64)`. Don't hardcode this though. The "proper" way to do it is to modify your `new()` method to accept a clock speed, then store the duration in the struct to return when requested.
 
 ```rust,noplayground
 impl VM {
@@ -147,20 +147,20 @@ fn fetch(&mut self) -> u16 {
         self.memory[self.pc as usize],
         self.memory[(self.pc + 1) as usize],
     ]);
-    self.pc +=2;
+    self.pc += 2;
     instruction
 }
 ```
 
 We're capturing by mutable reference, because we need to mutate, but not take ownership.
 
-Look at the [documentation for the `from_be_bytes()`](https://doc.rust-lang.org/stable/std/primitive.u16.html#method.from_be_bytes) method if you don't get whats going on.
+Look at the [documentation for the `from_be_bytes()`](https://doc.rust-lang.org/stable/std/primitive.u16.html#method.from_be_bytes) method if you don't get what's going on.
 
 There's lots of casting using `as usize` going on, because only a `usize` type can be used to index an array for safety reasons (imagine you used a `u16` type to index an array of 30,000 numbers, it wouldn't make sense semantically). Casting the program counter and other numbers to `usize` is gonna happen a lot, but you can't store them as `usize` types because that wouldn't make sense either, and would also make it much harder to keep track of what a value is meant to represent.
 
 ## Task 2.2
 
-The `self.pc & 0xfff;` will wrap the program counter to 12 bits, discarding the upper nibble. Adding some debug calls too:
+The `self.pc & 0x0fff;` will wrap the program counter to 12 bits, discarding the upper nibble. Adding some debug calls too:
 
 ```rust,noplayground
 fn fetch(&mut self) -> u16 {
@@ -193,13 +193,16 @@ fn nibbles(n: u16) -> (u8, u8, u8, u8) {
 }
 ```
 
-We can then match on this. Below shows NOP (`0000`), AND (`8xy2`) and RTS (`00EE`) implemented.
+We can then match on this. Below shows NOP (`0000`), AND (`8xy2`) and RET (`00EE`) implemented.
 
 ```rust,noplayground
 fn execute(&mut self, instruction: u16) {
     match nibbles(instruction) {
-        (0,0,0,0) => () //NOP
-        (0,0,0xE,0xE) => self.pc = self.stack.pop().unwrap_or(0),
+        // 0000 NOP: Nothing
+        (0x0, 0x0, 0x0, 0x0) => ()
+        // 00EE RET: Return from subroutine
+        (0x0, 0x0, 0xE, 0xE) => self.pc = self.stack.pop().unwrap_or(0),
+        // 8xy2 AND Vx, Vy: Set Vx = Vx AND Vy.
         (8,x,y,2) => self.registers[x as usize] &= self.registers[y as usize],
         _ => panic!("Instruction either doesn't exist or hasn't been implemented yet"),
     }
@@ -273,12 +276,12 @@ A few things going on here:
 - Where the operands are wider than one nibble, we bind them with wildcards instead of variables because we don't need the single nibble, we need wider than that, which is handled by the two helper functions at the top.
 - The two instructions that modify display state return early, and then a default return of `None` is added at the bottom
   - You'll want to modify `step` to return the display updates too.
-- `Dxyn` is just a translation of the rough pseudocode into rust. Note how iterating over bits is a pain, however, but iterating over the sprite is easy: we just grab it as a slice. Remember slices? If not, check [The Book](https://doc.rust-lang.org/book/ch04-03-slices.html)
-  - Bounds checks are included on each iteration, but if the entire sprite is off screen then it wraps.
+- `Dxyn` is just a translation of the rough pseudocode into Rust. Note how iterating over bits is a pain, however, but iterating over the sprite is easy: we just grab it as a slice. Remember slices? If not, check [The Book](https://doc.rust-lang.org/book/ch04-03-slices.html)
+  - Bounds checks are included on each iteration, but if the entire sprite is off-screen then it wraps.
 
 ## Task 3.7
 
-Here is a load function to load a rom into memory from disk:
+Here is a load function to load a ROM into memory from disk:
 
 ```rust,noplayground
 pub fn load(mut self, filename: &str) -> std::io::Result<Self> {
