@@ -162,9 +162,9 @@ This is certainly the most involved instruction in the whole CHIP-8 spec. CHIP-8
 
 Check the resources at the bottom (and also Google for anything else you can find) for more explanations, as implementations and explanations may vary ever so slightly, but the general idea is always the same.
 
-### Task 3.7: This Tutorial Not Sponsored By IBM
+### Task 3.7: This Tutorial Not Sponsored By UWCS
 
-Theoretically, you should be able to run the [IBM ROM](https://github.com/UWCS/rs118-chip8/blob/main/roms/IBM%20Logo.ch8) now. But first you need a way to load it into memory. CHIP-8 Programs start at `0x200` in memory, so you need to write a method to load a ROM from disk into memory and ensure your PC starts there. [`std::fs::read`](https://doc.rust-lang.org/stable/std/fs/fn.read.html) will load a file from disk and return it as `Vec` of bytes, but how to get it into memory is up to you. You could add it to your `new()` function, or create a separate `load()` function. Make sure you properly handle the `Result` that the `fs::read` returns too, in case you give it a file that doesn't exist.
+Theoretically, you should be able to run the [UWCS test ROM](https://github.com/UWCS/rs118-chip8/blob/main/roms/uwcs.ch8) now. But first you need a way to load it into memory. CHIP-8 Programs start at `0x200` in memory, so you need to write a method to load a ROM from disk into memory and ensure your PC starts there. [`std::fs::read`](https://doc.rust-lang.org/stable/std/fs/fn.read.html) will load a file from disk and return it as `Vec` of bytes, but how to get it into memory is up to you. You could add it to your `new()` function, or create a separate `load()` function. Make sure you properly handle the `Result` that the `fs::read` returns too, in case you give it a file that doesn't exist.
 
 ### Task 3.8: Debugging
 
