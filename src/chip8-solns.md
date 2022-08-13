@@ -46,7 +46,7 @@ Only a few of the fields you need are included here, you'll need to add a few mo
 
 ```rust,noplayground
 impl ChipState {
-    pub fn new(freq: u32) -> Self {
+    pub fn new() -> Self {
         Self { 
             memory: [0; 4096],
             registers: [0; 16], 
@@ -59,7 +59,7 @@ impl ChipState {
 } 
 ```
 
-Note how both the type and the function are `pub`, so the module above (main, the crate root) can use them.
+Note how both the type and the function are `pub`, so the module above (main, the crate root) can use them. The `program_counter` is initialized to `0x200`, as this is where CHIP-8 programs start. 
 
 ## Task 1.3 & 1.4
 
@@ -107,15 +107,15 @@ The following return values don't do anything, and let the interpreter run witho
 ```rust,noplayground
 impl chip8_base::Interpreter for ChipState {
     fn step(&mut self, keys: &chip8_base::Keys) -> Option<chip8_base::Display> {
-        return Some(self.display);
+        Some(self.display)
     }
 
     fn speed(&self) -> std::time::Duration {
-        return Duration::new(1, 0);
+        Duration::from_secs(1)
     }
 
     fn buzzer_active(&self) -> bool {
-        return false;
+        false
     }
 }
 ```
@@ -131,10 +131,10 @@ pub struct ChipState {
 }
 
 impl ChipState {
-    pub fn new(clock_speed: u32) -> Self {
+    pub fn new(clock_freq: u32) -> Self {
         Self {
             ...
-            speed: Duration::from_secs_f64(1_f64/ clock_speed as f64),
+            speed: Duration::from_secs_f64(1_f64 / clock_freq as f64),
         }
     }
 }

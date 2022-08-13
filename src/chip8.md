@@ -35,7 +35,7 @@ The first one is the main driver function of your interpreter that you'll have t
 
 ### Task 0.3: Git Good
 
-Cargo initializes your new project as a git repo. It does this for a reason, to encourage you to use version control. If you aren't familiar with git, check out our [Git Good resources](https://uwcs.co.uk/resources/git-good). Make a new commit every time you change or try something, so you can keep track of what you've done and roll back if things break. Commit _at least_ when you've done each task.
+Cargo initialises your new project as a git repo. It does this for a reason, to encourage you to use version control. If you aren't familiar with git, check out our [Git Good resources](https://uwcs.co.uk/resources/git-good). Make a new commit every time you change or try something, so you can keep track of what you've done and roll back if things break. Commit _at least_ when you've done each task.
 
 ## 1: The Virtual Machine
 
@@ -188,7 +188,7 @@ Some advice:
 - This is a very specific use case where casting in Rust can be annoying, as CHIP-8 has no strong type system like Rust does. Make sure all your `as` casts are in the right place.
 - You don't have to completely re-architect the whole thing to implement the `Fx0A` instruction, trust me. Ask for help with this one if you need (how can you keep the PC from moving on?).
 - You'll need the `rand` crate from crates.io to generate random numbers
-- You'll need to initialize the font in memory at some point. Where/how is best to do this? Font usually starts at 0x50, but can be anywhere in the first 512 bytes.
+- You'll need to initialise the font in memory at some point. Where/how is best to do this? Font usually starts at 0x50, but can be anywhere in the first 512 bytes.
 - Ask for help from a friend or lab tutor, or in [Discord](https://discord.uwcs.co.uk) if you get stuck
 - Look at existing implementations if you get really stuck
 
