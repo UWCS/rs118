@@ -28,7 +28,7 @@ Also, unlike the original book, I've not included the code snippets inline, as t
 
 ## 1: Images
 
-What does a renderer render? Well... pictures. An image of a scene. So we're going to need some way to output an image in Rust. We're going to take advantage of the excellent crates.io ecosystem here and use a crate called [image](https://github.com/image-rs/image) that does pretty much exactly what it says on the tin: provide tools for working with images. Have a look over the docs over on [docs.rs](https://docs.rs/image/latest/image/) and have a think about how you might go about creating a new image.
+What does a renderer render? Well... pictures. An image of a scene. So we're going to need some way to output an image in Rust. We're going to take advantage of the excellent crates.io ecosystem here and use a crate called [image](https://crates.io/crates/image) that does pretty much exactly what it says on the tin: provide tools for working with images. Have a look over the docs over on [docs.rs](https://docs.rs/image/latest/image/) and have a think about how you might go about creating a new image.
 
 We don't need to support any fancy encoding or anything for our raytracer, we just want each pixel to be comprised of 3 bytes: the good old `(r, g, b)`.
 
@@ -74,12 +74,13 @@ Our `Vec3` will require a few methods to make it useful in graphics applications
 - [Dot](https://www.mathsisfun.com/algebra/vectors-dot-product.html) and [cross](https://www.mathsisfun.com/algebra/vectors-cross-product.html) products
 - A `len()` method, to get it's magnitude
 - A `normalise()` method, to scale a vector to unity magnitude.
-- A `to_rgb()` method that converts a vector with all all 0.0-1.0 values to an `image::Rgb`.
 - A `map()` method, that applies a function to each element of the vector, consuming it and returning a new vector, similar to the `map()` method for arrays.
 
-Create a new `vector.rs` file, and include it in the module tree with a `mod vector;` statement in main. Then create a simple struct, `Vec3`, with three `f64` fields: x, y, z. Then, implement all these methods on it. Start with `dot()` and `len()`, then try `cross()`. Do `map()` next, as you can use it to then implement `to_rgb()` and `normalise()`. Look at the docs for [std::array::map](https://doc.rust-lang.org/std/primitive.array.html#method.map) for help with your map implementation, you want to take some function as an argument, and apply it to all 3 elements in your vector.
+Create a new `vector.rs` file, and include it in the module tree with a `mod vector;` statement in main. Then create a simple struct, `Vec3`, with three `f64` fields: x, y, z. Then, implement all these methods on it. Start with `dot()` and `len()`, then try `cross()`. Do `map()` next, as you can use it to then implement `normalise()`. Look at the docs for [std::array::map](https://doc.rust-lang.org/std/primitive.array.html#method.map) for help with your map implementation, you want to take some function as an argument, and apply it to all 3 elements in your vector.
 
 Add two type aliases `pub type Colour = Vec3` and `pub type Point = Vec3` too, You can add any other general vector methods you think might come in handy too.
+
+Since we are using `Vec3` for colours, it's also useful to add a method to convert `Vec3` into `image::Rgb`. Rust has a pair of traits to convert [`From`](https://doc.rust-lang.org/std/convert/trait.From.html) a type and [`Into`](https://doc.rust-lang.org/std/convert/trait.Into.html) a type. Implementing `Into<Rgb>` for `Vec8` might be tempting, but Rust provides a default implementation of `Into` that looks up the corresponding `From`. So, implement the trait `From<Vec3> for Rgb<u8>` and Rust will ensure `vec.into()` can convert to `Rgb` (the resulting type of `.into()` is inferred).
 
 ### Task 2.2
 
@@ -92,7 +93,7 @@ We'll also want to overload some operators. Operator overloading allows operator
 - Negate a vector
 - Multiply a vector element-wise by another vector
 
-Implementing all of these means a lot of boilerplate, but we can draft in another crate to help us: [`derive_more`](https://github.com/JelteF/derive_more), which extends the `#[derive]` macros we're familiar with by allowing us to derive more traits, including operators. Add it to your `Cargo.toml` and have a look at the docs to see how to use it. Add derives for `Add`, `Sub`, `Mul`, `Div`, and `Neg`. You can also derive a `Constructor`! Add `Debug`, `PartialEq`, and `PartialOrd` while you're at it too.
+Implementing all of these means a lot of boilerplate, but we can draft in another crate to help us: [`derive_more`](https://crates.io/crates/derive_more), which extends the `#[derive]` macros we're familiar with by allowing us to derive more traits, including operators. Add it to your `Cargo.toml` and have a look at the docs to see how to use it. Add derives for `Add`, `Sub`, `Mul`, `Div`, and `Neg`. You can also derive a `Constructor`! Add `Debug`, `PartialEq`, and `PartialOrd` while you're at it too.
 
 Our vector is only 24 bytes, so can be considered cheap enough to derive `Copy` and `Clone` for it too. Remember that this disregards move semantics for the vector to let the compiler automatically make copies of it where needed.
 
