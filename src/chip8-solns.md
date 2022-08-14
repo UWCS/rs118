@@ -1,5 +1,7 @@
 # CHIP-8 Solutions
 
+These solutions can be seen step-by-step [here](https://github.com/ericthelemur/chip9/commits/master).
+
 ## Task 1.1
 
 Your directory structure should now look like this:
@@ -29,54 +31,54 @@ You can add any other modules, for tests or anything else, anywhere you wish.
 The interpreter/CPU/virtual machine struct should look something like this:
 
 ```rust,noplayground
-pub struct VM {
+pub struct ChipState {
     memory: [u8; 4096],
-    pc: u16,
+    program_counter: u16,
     registers: [u8; 16],
     display: chip8_base::Display,
-    stack: Vec<u16>
+    stack_pointer: u8,
+    stack: [u16; 16],
+    // ... there will be more
 }
 ```
 
 Only a few of the fields you need are included here, you'll need to add a few more as you go, and you can represent them however you wish. The corresponding `new()` method should look like this:
 
 ```rust,noplayground
-impl VM {
+impl ChipState {
     pub fn new() -> Self {
-        Cpu {
+        Self { 
             memory: [0; 4096],
-            pc: 0,
-            registers: [0; 16],
-            display: [[0; 64]; 32]
-            stack: Vec::new(),
+            registers: [0; 16], 
+            program_counter: 0x200,
+            display: [[0; 64]; 32],
+            stack_pointer: 0,
+            stack: [0; 16],
         }
     }
-}
+} 
 ```
 
-Note how both the type and the function are `pub`, so the module above (main, the crate root) can use them.
+Note how both the type and the function are `pub`, so the module above (main, the crate root) can use them. The `program_counter` is initialized to `0x200`, as this is where CHIP-8 programs start. 
 
 ## Task 1.3 & 1.4
 
 We implement the trait for the type like so
 
 ```rust,noplayground
-use chip8_base::Interpreter;
-
-impl Interpreter for VM {
-    fn step(&mut self, keys: &Keys) -> Option<Display> {
+impl chip8_base::Interpreter for ChipState {
+    fn step(&mut self, keys: &chip8_base::Keys) -> Option<chip8_base::Display> {
         todo!()
     }
 
-    fn speed(&self) -> Duration {
+    fn speed(&self) -> std::time::Duration {
         todo!()
-
     }
+
     fn buzzer_active(&self) -> bool {
         todo!()
-
     }
-}
+} 
 ```
 
 Look at how the methods are capturing `self`. `step()` takes a mutable reference, because it needs to mutate the state of the virtual machine, but it doesn't move, because then we wouldn't be able to do more than one step. The other two take immutable references, because they only need to read state, not modify it.
@@ -86,14 +88,16 @@ Look at how the methods are capturing `self`. `step()` takes a mutable reference
 `main()` should look like this:
 
 ```rust,noplayground
+use interpreter::ChipState;
+
 mod interpreter;
-use chip8_base::run;
-use interpreter::VM;
 
 fn main() {
-    let vm = VM::new();
-    run(vm);
+    let vm = ChipState::new();
+
+    chip8_base::run(vm);
 }
+
 ```
 
 ## Task 1.6
@@ -101,18 +105,16 @@ fn main() {
 The following return values don't do anything, and let the interpreter run without panics:
 
 ```rust,noplayground
-impl Interpreter for VM {
-    fn step(&mut self, keys: &Keys) -> Option<Display> {
-        None
+impl chip8_base::Interpreter for ChipState {
+    fn step(&mut self, keys: &chip8_base::Keys) -> Option<chip8_base::Display> {
+        Some(self.display)
     }
 
-    fn speed(&self) -> Duration {
-        //don't make this zero, run() will panic because it can't run at infinite speed
+    fn speed(&self) -> std::time::Duration {
         Duration::from_secs(1)
     }
 
     fn buzzer_active(&self) -> bool {
-        //if this was true your computer would beep constantly
         false
     }
 }
@@ -120,19 +122,26 @@ impl Interpreter for VM {
 
 ## Task 1.7
 
-For a clock rate of 700Hz, you can create a `Duration` using `Duration::from_secs_f64(1_f64/700_f64)`. Don't hardcode this though. The "proper" way to do it is modify your `new()` method to accept a clock speed, then store the duration in the struct to return when requested.
+For a clock rate of 700Hz, you can create a `Duration` using `Duration::from_secs_f64(1_f64/700_f64)`. Don't hardcode this though. The "proper" way to do it is to modify your `new()` method to accept a clock speed, then store the duration in the struct to return when requested.
 
 ```rust,noplayground
-impl VM {
-    pub fn new(clock_speed: u32) -> Self {
+pub struct ChipState {
+    ...
+    speed: Duration
+}
+
+impl ChipState {
+    pub fn new(clock_freq: u32) -> Self {
         Self {
-            //... rest of the fields
-            speed: Duration::from_secs_f64(1_f64/ clock_speed as f64),
+            ...
+            speed: Duration::from_secs_f64(1_f64 / clock_freq as f64),
         }
     }
 }
 
-impl Interpreter for VM {
+...
+
+impl Interpreter for ChipState {
     fn speed(&self) -> Duration {
         self.speed
     }
@@ -147,30 +156,30 @@ fn fetch(&mut self) -> u16 {
         self.memory[self.pc as usize],
         self.memory[(self.pc + 1) as usize],
     ]);
-    self.pc +=2;
+    self.pc += 2;
     instruction
 }
 ```
 
 We're capturing by mutable reference, because we need to mutate, but not take ownership.
 
-Look at the [documentation for the `from_be_bytes()`](https://doc.rust-lang.org/stable/std/primitive.u16.html#method.from_be_bytes) method if you don't get whats going on.
+Look at the [documentation for the `from_be_bytes()`](https://doc.rust-lang.org/stable/std/primitive.u16.html#method.from_be_bytes) method if you don't get what's going on.
 
 There's lots of casting using `as usize` going on, because only a `usize` type can be used to index an array for safety reasons (imagine you used a `u16` type to index an array of 30,000 numbers, it wouldn't make sense semantically). Casting the program counter and other numbers to `usize` is gonna happen a lot, but you can't store them as `usize` types because that wouldn't make sense either, and would also make it much harder to keep track of what a value is meant to represent.
 
 ## Task 2.2
 
-The `self.pc & 0xfff;` will wrap the program counter to 12 bits, discarding the upper nibble. Adding some debug calls too:
+The `self.pc & 0x0fff;` will wrap the program counter to 12 bits, discarding the upper nibble. Adding some debug calls too:
 
 ```rust,noplayground
 fn fetch(&mut self) -> u16 {
-    dbg!(&self.pc);
+    dbg!(&self.program_counter);
     let instruction = u16::from_be_bytes([
         self.memory[self.pc as usize],
         self.memory[(self.pc + 1) as usize],
     ]);
-    self.pc +=2;
-    self.pc & 0xfff;
+    self.pc += 2;
+    self.pc & 0x0FFF;
     dbg!(&instruction);
     instruction
 }
@@ -185,22 +194,28 @@ First, we've written a helper method to break the `u16` instruction down into fo
 ```rust,noplayground
 //break a u16 into its nibbles
 fn nibbles(n: u16) -> (u8, u8, u8, u8) {
-    let n3 = (n >> 12) as u8;
+    let n3 = ( n >> 12)          as u8;
     let n2 = ((n >> 8) & 0b1111) as u8;
     let n1 = ((n >> 4) & 0b1111) as u8;
-    let n0 = (n & 0b1111) as u8;
+    let n0 = ( n       & 0b1111) as u8;
     (n3, n2, n1, n0)
 }
 ```
 
-We can then match on this. Below shows NOP (`0000`), AND (`8xy2`) and RTS (`00EE`) implemented.
+We can then match on this. Below shows NOP (`0000`), AND (`8xy2`) and RET (`00EE`) implemented. Here, you could implement almost anything, but this is just an example of the sort of structure you need.
 
 ```rust,noplayground
 fn execute(&mut self, instruction: u16) {
-    match nibbles(instruction) {
-        (0,0,0,0) => () //NOP
-        (0,0,0xE,0xE) => self.pc = self.stack.pop().unwrap_or(0),
-        (8,x,y,2) => self.registers[x as usize] &= self.registers[y as usize],
+    match Self::nibbles(instruction) {
+        // 0000 NOP: Nothing
+        (0x0, 0x0, 0x0, 0x0) => ()
+        // 00EE RET: Return from subroutine
+        (0x0, 0x0, 0xE, 0xE) => {
+            self.program_counter = self.stack[self.stack_pointer as usize];
+            self.stack_pointer -= 1;
+        },
+        // 8xy2 AND Vx, Vy: Set Vx = Vx AND Vy.
+        (8, x, y, 2) => self.registers[x as usize] &= self.registers[y as usize],
         _ => panic!("Instruction either doesn't exist or hasn't been implemented yet"),
     }
 }
@@ -218,73 +233,146 @@ fn step(&mut self, keys: &Keys) -> Option<Display> {
 }
 ```
 
-## Task 3.1 - 3.6
-
-The execute function has been extended to implement the 6 instructions required:
+## Task 3.1
 
 ```rust,noplayground
-fn execute(&mut self, instruction: u16) -> {
-    //helpers that get variable length operands with some bit masking/casting
-    let nnn: u16 = twelvebit(opcode);
-    let kk: u8 = eightbit(opcode);
-
-    match nibbles(instruction) {
-        (0,0,0,0) => (), //NOP
-        (0,0,0xE,0) => return Some([[0; 64]; 32]) //CLS
-        (1,_,_,_) => self.pc = addr,//JMP
-        (6,x,_,_) => self.registers[x as usize] = kk, //SETR
-        (7,x,_,_) => self.registers[x as usize] = self.registers[x as usize].wrapping_add(kk), //ADDR
-        (0xA,_,_,_) => self.index = nnn, //SETI
-        (0xD,x,y,n) => => { //DRAW
-        let range = (self.index as usize)..((self.index + n as u16) as usize);
-        let sprite = &self.memory[range];
-        let x = self.registers[rx as usize] % 64;
-        let y = self.registers[ry as usize] % 32;
-        self.registers[0xf] = 0;
-        for (i, row) in sprite.iter().enumerate() {
-            if y + i as u8 > 31 {
-                break;
-            }
-            for (j, sprite_px) in (0..8).zip(PixIterator::new(row)) {
-                if x + j as u8 > 63 {
-                    break;
-                }
-                let display_px = &mut self.display[(y as usize + i)][(x as usize + j)];
-                //set vf on collide
-                if *display_px == 1 && sprite_px == 1 {
-                    self.registers[0xf] = 1;
-                }
-                //xor onto display
-                *display_px ^= sprite_px;
-            }
-        }
-        return Some(self.display);
+fn execute(&mut self, instruction: u16) -> Option<chip8_base::Display> {
+    match Self::nibbles(instruction) {
+        // 0000 NOP: Nothing
+        (0x0, 0x0, 0x0, 0x0) => (),
+        // 00E0 CLS: Clears the display
+        (0x0, 0x0, 0xE, 0x0) => {
+            self.display = [[0; 64]; 32];
+            return Some(self.display);
         }
         _ => panic!("Instruction either doesn't exist or hasn't been implemented yet"),
     };
     None
 }
+...
+
+impl chip8_base::Interpreter for ChipState {
+    fn step(&mut self, keys: &chip8_base::Keys) -> Option<chip8_base::Display> {
+        let instr = self.fetch();
+        self.execute(instr)
+    }
+    ...
 ```
 
-A few things going on here:
+Note the return is needed to pass the display back since clear updates the display, also pattern matching on hex to match e.g. `0xE` and stay consistent.
 
-- The two helper functions at the top grab the variable length operands out of the opcode if we need.
-  - You can do this however you want, don't just blindly follow our solution.
-- Where the operands are wider than one nibble, we bind them with wildcards instead of variables because we don't need the single nibble, we need wider than that, which is handled by the two helper functions at the top.
-- The two instructions that modify display state return early, and then a default return of `None` is added at the bottom
-  - You'll want to modify `step` to return the display updates too.
-- `Dxyn` is just a translation of the rough pseudocode into rust. Note how iterating over bits is a pain, however, but iterating over the sprite is easy: we just grab it as a slice. Remember slices? If not, check [The Book](https://doc.rust-lang.org/book/ch04-03-slices.html)
-  - Bounds checks are included on each iteration, but if the entire sprite is off screen then it wraps.
+## Task 3.2
+
+```rust,noplayground
+fn nnn(instruction: u16) -> u16 {
+    instruction & 0x0FFF
+}
+...
+
+fn execute(&mut self, instruction: u16) -> Option<chip8_base::Display> {
+    ...
+    // 1nnn JP addr: Jump to location nnn
+    (0x1, _, _, _) => self.program_counter = Self::nnn(instruction)
+    ...
+```
+
+Here we use a bitmask to chop off the first bit to get the last 12. This approach disregards the last 3 nibbles in the pattern match, since those variables aren't used, and are taken straight from `instruction` instead. You could also construct `nnn` from those nibbles, though it is more involved.
+
+## Task 3.3
+
+```rust,noplayground
+fn kk(instruction: u16) -> u8 {
+    (instruction & 0x00FF) as u8
+}
+...
+
+fn execute(&mut self, instruction: u16) -> Option<chip8_base::Display> {
+    ...
+    // 6xkk LD Vx, byte: Set Vx = kk.
+    (0x6, x, _, _) => self.registers[x as usize] = Self::kk(instruction),
+    ...
+```
+
+Nearly identical to above, but using `kk` to match the last byte instead of 12 bits.
+
+## Task 3.4
+
+```rust,noplayground
+fn execute(&mut self, instruction: u16) -> Option<chip8_base::Display> {
+    ...
+    // 7xkk ADD Vx, byte: Set Vx = Vx + kk.
+    (0x7, x, _, _) => {
+        self.registers[x as usize] = self.registers[x as usize].wrapping_add(Self::kk(instruction));
+    }
+    ...
+```
+
+As the hint gave, `wrapping_add` wraps around the overflow as required.
+
+## Task 3.5
+
+Add `index: u16` to the struct and `new`.
+
+```rust,noplayground
+fn execute(&mut self, instruction: u16) -> Option<chip8_base::Display> {
+    ...
+    // Annn LD I, addr: Set I = nnn.
+    (0xA,_,_,_) => self.index = Self::nnn(instruction),
+    ...
+```
+
+## Task 3.6
+
+```rust,noplayground
+fn execute(&mut self, instruction: u16) -> Option<chip8_base::Display> {
+    ...
+    // Dxyn DRW Vx, Vy, n: Display n-byte sprite starting at memory location I at (Vx, Vy), set VF if collision.
+    (0xD, x, y, n) => {
+        // Wrap to screen size
+        let tlx = self.registers[x as usize] % 64;
+        let tly = self.registers[y as usize] % 32;
+        self.registers[0xF] = 0;
+        let ind = self.index as usize;
+        let sprite = &self.memory[ind..(ind + n as usize)];     // Fetch as slice
+        
+        // Enumerate to get the value (row) and index (i) at once
+        for (i, row) in sprite.iter().enumerate() {
+            let pxy = tly + i as u8;
+            if pxy > 31 {   // Stop at edge
+                break;
+            }
+            
+            for j in 0..8 {     // For each bit index
+                let pxx = tlx + j;
+                if pxx > 63 {   // Stop at edge
+                    break;
+                }
+                let old_px = &mut self.display[pxy as usize][pxx as usize];     // Fetch old px as reference
+                let mask = 2_u8.pow(7 - j as u32);      // Calculate bitmask for bit j
+                let new_px = (row & mask) >> (7 - j);        // Mask and shift to 0 or 1
+
+                // Check for collision
+                if new_px == 1 && *old_px == 1 {
+                    self.registers[0xF] = 1 
+                }
+                *old_px ^= new_px;      // Apply as XOR
+            }
+        }
+        return Some(self.display);
+    },
+...
+```
+
+This is a translation of the rough pseudocode into Rust. Note how iterating over bits is a bit of a pain. However, iterating over the sprite super is easy: we just grab it as a slice. Remember slices? If not, check [The Book](https://doc.rust-lang.org/book/ch04-03-slices.html)
 
 ## Task 3.7
 
-Here is a load function to load a rom into memory from disk:
+Here is a load function to load a ROM into memory from disk:
 
 ```rust,noplayground
 pub fn load(mut self, filename: &str) -> std::io::Result<Self> {
     let program = std::fs::read(filename)?;
     self.memory[0x200..(0x200 + program.len())].copy_from_slice(&program);
-    self.pc = 0x200;
     Ok(self)
 }
 ```
@@ -297,6 +385,6 @@ You could also do this capturing `self` by mutable reference, or handle the I/O 
 
 You really are on your own here.
 
-Try to ask for help, check your resources, and debug properly first before going straight to the nuclear option of just copying it from my solution, but you can find the `rs118-chip8` implementation [on Github](https://github.com/uwcs/rs118-chip8)
+Try to ask for help, check your resources, and debug properly first before going straight to the nuclear option of just copying it from my solution, but you can find a fancy full implementation at [`rs118-chip8`](https://github.com/uwcs/rs118-chip8), and a [less Rust-y one also](https://github.com/ericthelemur/chip8).
 
-Note that my solution is also far from perfect, so don't rely on it as a source of truth for CHIP-8 implementations!
+Note that these solutions are certainly not infallible, so don't rely on it as a source of truth for CHIP-8 implementations!

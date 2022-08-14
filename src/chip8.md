@@ -1,10 +1,10 @@
 # CHIP-8 Project
 
-CHIP-8 is an interpreted programming language, developed by Joseph Weisbecker. It was initially used on the COSMAC VIP and Telmac 1800 8-bit microcomputers in the mid-1970s. CHIP-8 programs are run on a CHIP-8 virtual machine. It was made to allow video games to be more easily programmed for these computers, but CHIP 8 is still used today, due to its simplicity, and consequently on any platform and its teaching of programming Binary numbers. [Wikipedia](https://en.wikipedia.org/wiki/CHIP-8).
+[CHIP-8](https://en.wikipedia.org/wiki/CHIP-8) is an interpreted programming language, developed by Joseph Weisbecker. It was initially used on the COSMAC VIP and Telmac 1800 8-bit microcomputers in the mid-1970s. CHIP-8 programs are run on a CHIP-8 virtual machine. It was made to allow video games to be more easily programmed for these computers, but CHIP 8 is still used today, due to its simplicity, and consequently on any platform and its teaching of programming binary numbers.
 
-In short, its a really basic assembly language-type specification that lets people build neat games, and we're going to build an interpreter for it, applying some of the Rust we've learned so far.
+In short, its a really basic assembly-language-type specification that lets people build neat games, and we're going to build an interpreter for it, applying some of the Rust we've learned so far.
 
-Our emulator is available on [crates.io](https://crates.io/crates/rs118-chip8), so you can install it with `cargo install rs118-chip8` to have a play with it so you can see what your final product should look like. Plenty of roms are available online, we recommend [Space Invaders](https://github.com/UWCS/rs118-chip8/blob/main/roms/Space%20Invaders.ch8) and [Tetris](https://github.com/UWCS/rs118-chip8/blob/main/roms/Tetris.ch8)
+Our finished emulator is available on [crates.io](https://crates.io/crates/rs118-chip8), so you can install it with `cargo install rs118-chip8` to have a play with it, so you can see what your final product should look like. Plenty of ROMs are available online, we recommend [Space Invaders](https://github.com/UWCS/rs118-chip8/blob/main/roms/Space%20Invaders.ch8) and [Tetris](https://github.com/UWCS/rs118-chip8/blob/main/roms/Tetris.ch8).
 
 Also, if you haven't read [chapter 7](https://doc.rust-lang.org/book/ch07-00-managing-growing-projects-with-packages-crates-and-modules.html) of The Book, I'd recommend doing so. Knowing how to lay out a Rust program is something that's often overlooked but super important.
 
@@ -12,7 +12,7 @@ Also, if you haven't read [chapter 7](https://doc.rust-lang.org/book/ch07-00-man
 
 ### Task 0.1: Read the Docs
 
-Before you do anything, have a read of [the CHIP-8 specification](http://devernay.free.fr/hacks/chip8/C8TECH10.HTM) so you have a rough idea of what it is you need to implement and can start thinking about a solution. Think about how you'll represent the different components in Rust.
+Before you do anything, have a read of [the CHIP-8 specification](http://devernay.free.fr/hacks/chip8/C8TECH10.HTM), so you have a rough idea of what it is you need to implement and can start thinking about a solution. Think about how you'll represent the different components in Rust.
 
 ### Task 0.2: Read More Docs
 
@@ -23,7 +23,7 @@ Create a new cargo project, and open up the `Cargo.toml` file. Our emulator expo
 rs118-chip8 = "0.1"
 ```
 
-Take a look at the `chip8_base` library that the `rs118-chip8` crate exposes (the crate name and library name are slightly different, but don't worry about that too much, it's just a quirk of how I've written the crate). the documentation for it is available on [docs.rs](LINK). We can see that it exposes two type aliases, `Display` and `Keys`, and also an `Intepreter` trait. The idea is that you create your own interpreter by implementing the trait, and then the `run()` method will run it for you. This works because `run()` is written to accept any type that implements the `Interpreter` trait as an argument.
+Take a look at the [`chip8_base`](https://docs.rs/rs118-chip8/latest/chip8_base/) library that the `rs118-chip8` crate exposes (the crate name and library name are slightly different, but that's just a little implemenation quirk). We can see that it exposes two type aliases, `Display` and `Keys`, and also an `Intepreter` trait. The idea is that you create your own interpreter by implementing the trait, and then the `run()` method will run it for you. This works because `run()` is written to accept any type that implements the `Interpreter` trait as an argument.
 
 There's 3 functions our own interpreter will need to provide for a complete trait implementation:
 
@@ -47,25 +47,27 @@ Create a new directory next to `main.rs` called `interpreter`, and then add `int
 
 ### Task 1.2: The Interpreter Type
 
-In our new interpreter module we want to create a struct that will represent the state of our CHIP-8 virtual machine.
+In our new interpreter module, we want to create a struct that will represent the state of our CHIP-8 virtual machine.
 
-Create a new struct type, adding any fields that you see fit. Also add an `impl` block for your struct, and create a `new()` associated function to return a default copy of our struct. `new()` can take whatever arguments you see fit to create a new virtual machine.
+Create a new struct type, adding fields from [the spec](http://devernay.free.fr/hacks/chip8/C8TECH10.HTM#2.0): memory, registers, display (following [`chip8_base::Display`](https://docs.rs/rs118-chip8/latest/chip8_base/type.Display.html)). Also add an `impl` with a `new()` associated function to return a default copy of our struct. `new()` can take whatever arguments you see fit to create a new virtual machine, but for now, none is fine.
 
-### Task 1.3: The Interpeter Trait
+### Task 1.3: The Interpreter Trait
 
 Before we can use the `run()` function from the `chip8_base` module, we need to tell the compiler that our interpreter is actually an interpreter, by implementing the `Interpreter` trait on it.
 
-Import the `chip8_base::Interpreter` trait into your interpreter module, and use another `impl` block to implement the trait on your struct. Refer back to The Book if you need a refresher on the exact syntax for this.
+Import the `chip8_base::Interpreter` trait into your interpreter module, and use another `impl` block to create the skeleton of your implementation of the trait on your struct.
 
 ### Task 1.4: Shut Up Compiler
 
-The compiler should be screaming at you right about now, because your type is implementing a trait without providing definitions for any of it's methods. Go ahead and add the three required methods to your `impl` block, marking them as [`todo!()`](https://doc.rust-lang.org/std/macro.todo.html) for now. Rust-analyser can do this for you if you ask it nicely. d
+The compiler should be screaming at you right about now, because your type is implementing a trait without providing definitions for any of its methods. Go ahead and add the three required methods to your `impl` block, marking them as [`todo!()`](https://doc.rust-lang.org/std/macro.todo.html) for now. 
+
+Note: `rust-analyzer` can do this for you if you ask it nicely (in VS Code, press `Ctrl` + `.` inside the `impl` and select `Implement missing members`).
 
 ### Task 1.5: One Step at a Time
 
-So, now you have your own interpreter, the compiler knows its an interpreter, and you can call `step()` on it to step through execution one clock cycle at a time. `main()` is the driver function for our code, so we'll instantiate and run things there.
+So, now you have your own skeleton of an interpreter, you can call `step()` on it to step through execution one clock cycle at a time. We do however need somewhere to create and run things from: `main()`.
 
-Head back to `main.rs` and use your `new()` function from the `interpreter` module to create a new virtual machine. Then, call `chip8_base::run()`, passing the struct you just instantiated as an argument. Have a look at the type signature for `chip8_base::run()` and think about how exactly to pass your arguments, considering ownership.
+Head back to `main.rs` and use your `new()` function from the `interpreter` module to create a new virtual machine (check your `pub`s). Then, call `chip8_base::run()`, passing the struct you just instantiated as an argument. Have a look at the type signature for `chip8_base::run()` and think about how exactly to pass your arguments, considering ownership.
 
 This should all compile now, so `cargo run` it and see what happens!
 
@@ -77,9 +79,9 @@ Make the three `Interpreter` methods return something such that they don't reall
 
 ### Task 1.7: Timing
 
-Have another look at the `speed()` method. To run games properly, the interpreter needs to run at a fixed clock speed. The return type of `speed()` is [`Duration`](https://doc.rust-lang.org/stable/std/time/struct.Duration.html), which is Rust's representation of a period of time. You can create `Duration` types with a number of associated functions, take a look at the docs to see which one is appropriate here. Your interpreter type should store some representation of the speed it is currently being run at (A clock speed of 700Hz is generally pretty good for most CHIP-8 games), and be able to return the speed as a `Duration` so that the `run()` function knows exactly how fast to run it.
+Have another look at the `speed()` method. To run games properly, the interpreter needs to run at a fixed clock speed. The return type of `speed()` is [`Duration`](https://doc.rust-lang.org/stable/std/time/struct.Duration.html), which is Rust's representation of a period of time. You can create `Duration` types with a number of associated functions, take a look at the docs to see which one is appropriate here. Your interpreter type should store some representation of the speed it is currently being run at (a clock frequency of 700Hz is generally pretty good for most CHIP-8 games), and be able to return the speed as a `Duration` so that the `run()` function knows exactly how fast to run it.
 
-Make your `speed()` method return a period of time corresponding to the speed of the interpreter. You should not hard-code this, make it a configurable constant or something passed when instantiating a new interpreter, as different games require different speeds.
+Make your `speed()` method return a period of time corresponding to the speed of the interpreter. You should not hard-code this, make it a configurable constant or something passed when instantiating a new interpreter, as different games may require different speeds.
 
 ## 2: Fetch-Decode-Execute
 
@@ -104,25 +106,25 @@ Fix your fetch instruction to wrap back to 0 when it reaches the end of the addr
 
 ### Task 2.3: Decode
 
-So, we can fetch instructions, but what do we do with them? Well, execute them of course. CHIP-8 has 35 instructions with a varying number of operands. We could write a very very long chain of if/else expressions to decode each instruction, or we could use one `match` expression. Each instruction has four nibbles, some of which are fixed to specify the opcode, some of which are operands of varying length (4, 8 or 12 bit). We can use this to write our `execute()` function (we'll roll decode and execute into one step for simplicity).
+So, we can fetch instructions, but what do we do with them? Well, execute them of course. CHIP-8 has 35 instructions with a varying number of operands. We could write a very very long chain of if/else expressions to decode each instruction, or we could use one `match` expression. Each instruction has four nibbles, some of which are fixed to specify the opcode, some of which are operands of varying length (4, 8 or 12 bit). We can use this to write our `execute()` function (you could separate decode and execute, but it's easiest to combine them for simplicity).
 
-Write an `execute` method that uses a `match` expression to decode instructions. There's many ways you could go about this, but I recommend breaking each instruction down into it's four nibbles, then pattern matching on that. For now, make each of your match arms do nothing (return the unit type). Remember that `match` expressions in rust have to cover all possible types, so you can use a wildcard pattern (`_ => ()`) to cover any unimplemented instructions, or instructions that don't exist. **You don't have to do all of the instructions now, just one or two to get the general idea.**. Refer back to [The Book](https://doc.rust-lang.org/book/ch06-02-match.html) (Chapter 18 may also be useful) if you need a refresher on how `match` works.
+Write an `execute` method that uses a `match` expression to decode instructions. Just pattern match for now, no need to execute anything yet (that's spoilers for part 2.4). There are many ways you could go about this, but I recommend breaking each instruction down into it's four nibbles, then pattern matching on that. For now, make each of your match arms do nothing (return the unit type). Remember that `match` expressions in rust have to cover all possible types, so you can use a wildcard pattern (`_ => ()`) to cover any unimplemented instructions, or instructions that don't exist. **You don't have to do all of the instructions now,** just maybe have a look at the essentials for later (see section 3) and check the advice at the bottom for a little help. Refer back to [The Book](https://doc.rust-lang.org/book/ch06-02-match.html) (Chapter 18 may also be useful) if you need a refresher on how `match` works.
 
 ### Task 2.4: Execute
 
 So we've done fetch and decode, no prizes as to what comes next. Executing an instruction just consists of modifying the internal state of your virtual machine accordingly, so double-check [the specification](http://devernay.free.fr/hacks/chip8/C8TECH10.HTM) at this point to make sure you have all the fields you need on your interpreter struct.
 
-Fill in a few of the arms of your match statement to execute the decoded instructions. Think about how you're going to get the operands out of the instruction when they vary in width. Make your `step()` method call `execute()` so that the interpreter is now doing the fetch-decode-execute cycle. Implement the opcode `0x000` as a NOP (No-Operation) instruction, that simply does nothing.
+First implement the opcode `0x000` as a NOP (No-Operation) instruction, that simply does nothing. Then fill in a few of the arms of your match statement to execute the decoded instructions (perhaps take some inspiration from section 3). Think about how you're going to get the operands out of the instruction when they vary in width. Make your `step()` method call `execute()` so that the interpreter is now doing the fetch-decode-execute cycle.
 
-Congrats! You're successfully emulating a CPU* (*CHIP-8 is not a CPU but its an awful lot like one). Take a moment to appreciate how cool this is, even if it does nothing so far. What should be happening is the interpreter is fetching, decoding and executing `0x0000` instructions continually, which aren't real instructions but I added them because I could.
+Congrats! You're successfully emulating a CPU* (*CHIP-8 is not a CPU but it's an awful lot like one). Take a moment to appreciate how cool this is, even if it does nothing so far. What should be happening is the interpreter is fetching, decoding and executing `0x0000` instructions continually, which aren't real instructions but I added them because I could.
 
 ## 3: The First Few Instructions
 
-In the last section, you implemented one or two random instructions of your choosing, plus our fictitious NOP instruction. Now, I'm gonna talk you through implementing a few more, such that you can run a real program. There's an IBM test ROM that does nothing except display the IBM logo, but using only 6 instructions, so those are what we're gonna implement.
+In the last section, you implemented one or two random instructions of your choosing, plus our fictitious NOP instruction. Now, I'm gonna talk you through implementing a few more, such that you can run a real program. There's an IBM test ROM that does nothing except display the IBM logo, but using only 6 instructions, so those are what we'll implement.
 
 ### Task 3.1: 00E0 (clear screen)
 
-This instruction should set all of the display's pixels to black. If you don't have some representation of the display in your struct, add one now (look at the [`Display`](https://docs.rs/crates/ADD THE LINK HERE) type if you need a hint).
+This instruction should set all the display's pixels to black. If you don't have some representation of the display in your struct, add one now (look at the [`Display`](https://docs.rs/rs118-chip8/latest/chip8_base/type.Display.html) type if you need a hint).
 
 The `step()` function should return `Some(Display)` when the display is updated, so maybe your execute function wants to do the same, and then the step function should return that? Either way, make sure that executing this instruction causes your updated display state to be returned to `step()`'s caller.
 
@@ -130,46 +132,45 @@ The `step()` function should return `Some(Display)` when the display is updated,
 
 This instruction has one operand, `nnn`, a 12-bit address that should be pushed onto the stack. Rust doesn't have a 12-bit number type, so pick another type accordingly and include checks/wrapping to make sure that the value remains within 12 bits. The program counter should simply be set to the value of the operand.
 
-### Task 3.3: 6xnn (set register Vx)
+### Task 3.3: 6xkk (set register Vx)
 
-CHIP-8 has 16 general purpose 8-bit registers, numbered `V0` to `VF`. This instruction has two operands, `x`, the register, and `nn`, a byte. The byte should be put in the register. Easy.
+CHIP-8 has 16 general purpose 8-bit registers, numbered `V0` to `VF`. `VF` is often used for special flags from some operations. This instruction has two operands, `x`, the register, and `kk`, a byte. The byte should be put in the register. Easy.
 
-### Task 3.4: 7xnn (add to register Vx)
+### Task 3.4: 7xkk (add to register Vx)
 
-Add the value `nn` to the value in the register `Vx`. This instruction may overflow (causing a panic), so make sure to handle overflow/wrapping correctly.
+Add the value `kk` to the value in the register `Vx`. This instruction may overflow (causing a panic), so make sure to handle overflow/wrapping correctly.
 
 [**Hint**](https://doc.rust-lang.org/std/primitive.u8.html#method.wrapping_add)
 
 ### Task 3.5: Annn (set index register)
 
-The index register is a special 16-bit register, which is generally used to point at locations in memory. This instruction should set the index register to the 12-bit value `nnn`.
+The index register is a separate special 16-bit register, which is generally used to point at locations in memory. This instruction should set the index register to the 12-bit value `nnn`.
 
 ### Task 3.6: Dxyn (draw)
 
-This is probably the hardest instruction. CHIP-8 has sprites which are 8 bits wide and up to 15 bytes tall. This instruction draws the sprite starting at the address in the index register to the screen at position (`Vx`,`Vy`). Info on how sprites should wrap varies, but generally the X and Y coordinates should be modulo the display size, ie an X-coordinate of 69 should be interpreted as a coordinate of 6, and sprites should not partially wrap. Drawing works by XORing the pixel values with the current display values, and the `VF` register should also be set to `1` if this causes any pixels to be erased.
+This is certainly the most involved instruction in the whole CHIP-8 spec. CHIP-8 has sprites which are 8 bits wide and up to 15 bytes tall. This instruction draws the sprite starting at the address in the index register to the screen at position (`Vx`,`Vy`). Info on how sprites should wrap varies, but generally the X and Y coordinates should be modulo the display size, ie an X-coordinate of 69 should be interpreted as a coordinate of 6, and sprites should not partially wrap. Drawing works by XORing the pixel values with the current display values, and the `VF` register should also be set to `1` if this causes any pixels to be erased.
 
 - Set `X` to the value in `Vx` modulo 64
 - Set `Y` to the value in `Vy` modulo 32
 - Zero `VF`
 - For each row in the n-byte sprite
   - if y is out of bounds, stop drawing the sprite
-  - For each bit in the byte/row
+  - For each **bit** in the byte/row
     - If x is out of bounds, stop drawing the row
     - XOR the bit onto the screen
       - Set `VF = 1` if this caused a pixel to be erased.
 
-Check the resources at the bottom (and also google for anything else you can find) for more explanations, as implementations and explanations may vary ever so slightly, but the general idea is aways the same
+Check the resources at the bottom (and also Google for anything else you can find) for more explanations, as implementations and explanations may vary ever so slightly, but the general idea is always the same.
 
-### Task 3.7: This Tutorial Not Sponsored By IBM
+### Task 3.7: This Tutorial Not Sponsored By UWCS
 
-Theoretically, you should be able to run the [IBM ROM](https://github.com/UWCS/rs118-chip8/blob/main/roms/IBM%20Logo.ch8) now. But first you need a way to load it into memory. CHIP-8 Programs start at `0x200` in memory, so you need to write a method to load a ROM from disk into memory. [`std::fs::read`](https://doc.rust-lang.org/stable/std/fs/fn.read.html) will load a file from disk and return it as `Vec` of bytes, but how to get it into memory is up to you. You could add it to your `new()` function, or create a separate `load()` function. Make sure you properly handle the `Result` that the `fs::read` returns too, in case you give it a file that doesn't exist.
+Theoretically, you should be able to run the [UWCS test ROM](https://github.com/UWCS/rs118-chip8/blob/main/roms/uwcs.ch8) now. But first you need a way to load it into memory. CHIP-8 Programs start at `0x200` in memory, so you need to write a method to load a ROM from disk into memory and ensure your PC starts there. [`std::fs::read`](https://doc.rust-lang.org/stable/std/fs/fn.read.html) will load a file from disk and return it as `Vec` of bytes, but how to get it into memory is up to you. You could add it to your `new()` function, or create a separate `load()` function. Make sure you properly handle the `Result` that the `fs::read` returns too, in case you give it a file that doesn't exist.
 
 ### Task 3.8: Debugging
 
-Chances are this doesn't work first try (unless you're some next level god tier genius, in which case, congrats). You'll probably need to do some debugging. Making extensive use of the `dbg!()` macro is a good idea, or maybe slow down the speed of your emulator to make it easier to see whats going on step-by-step. Redirecting `stderr` to a file on the command line may come in handy too so you can take a closer look.
+Chances are this doesn't work first try (unless you're some next level god tier genius, in which case, congrats). You'll probably need to do some debugging. Making extensive use of the `dbg!()` macro is a good idea, or maybe slow down the speed of your emulator to make it easier to see what's going on step-by-step. Redirecting `stderr` to a file on the command line may come in handy too so, you can take a closer look.
 
-If you're using VSCode, debugging Rust is easy. Rust-Analyser adds a little "debug" button above your main function you can press to launch the debugger, allowing you to step through and inspect values one step at a time. If you've never used a debugger in VSCode before, [have a look at this article]
-(https://code.visualstudio.com/docs/editor/debugging). [This article includes some information about debugging Rust specifically.](https://dev.to/rogertorres/debugging-rust-with-vs-code-11dj). If you prefer the command line, gdb has support for rust too, through `rust-gdb`.
+If you're using VS Code, debugging Rust is easy. `rust-analyzer` adds a little "debug" button above your main function you can press to launch the debugger, allowing you to step through and inspect values one step at a time. If you've never used a debugger in VS Code before, [have a look at this article](https://code.visualstudio.com/docs/editor/debugging). [This article includes some information about debugging Rust specifically.](https://dev.to/rogertorres/debugging-rust-with-vs-code-11dj). If you prefer the command line, `gdb` has support for rust too, through `rust-gdb`.
 
 Writing unit tests to test each instruction in isolation is a good idea too. [Chapter 11 of The Book](https://doc.rust-lang.org/book/ch11-00-testing.html) has some information on writing unit tests in rust, which is incredibly easy. Obviously you should always test your code, but a lot of the opcodes are fairly simple and we don't expect a full suite of unit tests for just a toy project. Writing a few to cover the more complex instructions and check your edge cases is a good idea, as you can then debug the execution of the tests in isolation too.
 
@@ -185,7 +186,7 @@ Some advice:
   - `n & 0xfff` will wrap `n` to a 12 bit boundary
 - Some instructions require you set `VF` under certain conditions.
 - This is a very specific use case where casting in Rust can be annoying, as CHIP-8 has no strong type system like Rust does. Make sure all your `as` casts are in the right place.
-- You don't have to completely re-architect the whole thing to implement the `Fx0A` instruction, trust me. Ask for help with this one if you need.
+- You don't have to completely re-architect the whole thing to implement the `Fx0A` instruction, trust me. Ask for help with this one if you need (how can you keep the PC from moving on?).
 - You'll need the `rand` crate from crates.io to generate random numbers
 - You'll need to initialise the font in memory at some point. Where/how is best to do this? Font usually starts at 0x50, but can be anywhere in the first 512 bytes.
 - Ask for help from a friend or lab tutor, or in [Discord](https://discord.uwcs.co.uk) if you get stuck
