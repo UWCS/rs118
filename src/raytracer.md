@@ -32,7 +32,7 @@ What does a renderer render? Well... pictures. An image of a scene. So we're goi
 
 We don't need to support any fancy encoding or anything for our raytracer, we just want each pixel to be comprised of 3 bytes: the good old `(r, g, b)`.
 
-### Task 1.1
+### Task 1.1: Create Image
 
 I'm assuming you've already created a new cargo project and added `image` to your dependencies in `Cargo.toml`. In your main function, write some code to generate an image and save it to disk. The basic steps are something like:
 
@@ -45,7 +45,7 @@ Your image should be saved to disk, and look like this:
 
 ![](./img/1-1.png)
 
-### Task 1.2
+### Task 1.2: Gradients
 
 We're gonna extend the code from above to output something a bit nicer. From here on out, I'm going to talk about RGB values as being floats from 0.0 to 1.0. Converting them to bytes can be done just before you write to the pixel. I'm also going to refer to `i` and `j` as the coordinates of each pixel, where `i` is the offset in columns from the top-left corner, and `j` is the offset in rows (if you're not already using an iterator that does this for you, try find it in the `image` documentation).
 
@@ -67,7 +67,7 @@ This is a sort of graphics "Hello World", because once we have an image we can d
 
 Almost all graphics programs have some data structures for storing geometric vectors and colors. In many systems these vectors are 4D (3D plus a homogeneous coordinate for geometry, and RGB plus an alpha transparency channel for colors). For our purposes, three coordinates is just fine. We’ll use the same struct `Vec3` for colors, locations, directions, offsets, whatever. Some people don’t like this because it doesn’t prevent you from doing something silly, like adding a color to a location. They have a good point, and we could enforce this through Rust's type system, but we're going to not for now because it adds a lot of complexity. We will create some type aliases `Colour` and `Point`, though, to make our types a little more descriptive where possible.
 
-### Task 2.1
+### Task 2.1: Vector Struct
 
 Our `Vec3` will require a few methods to make it useful in graphics applications:
 
@@ -82,7 +82,7 @@ Add two type aliases `pub type Colour = Vec3` and `pub type Point = Vec3` too, Y
 
 Since we are using `Vec3` for colours, it's also useful to add a method to convert `Vec3` into `image::Rgb`. Rust has a pair of traits to convert [`From`](https://doc.rust-lang.org/std/convert/trait.From.html) a type and [`Into`](https://doc.rust-lang.org/std/convert/trait.Into.html) a type. Implementing `Into<Rgb>` for `Vec8` might be tempting, but Rust provides a default implementation of `Into` that looks up the corresponding `From`. So, implement the trait `From<Vec3> for Rgb<u8>` and Rust will ensure `vec.into()` can convert to `Rgb` (the resulting type of `.into()` is inferred).
 
-### Task 2.2
+### Task 2.2: Vector Operations
 
 We'll also want to overload some operators. Operator overloading allows operators to be implemented to work on custom types, which is done in Rust by implementing the [`std::ops`](https://doc.rust-lang.org/std/ops/index.html) traits. You want to be able to:
 
@@ -101,7 +101,7 @@ Our vector is only 24 bytes, so can be considered cheap enough to derive `Copy` 
 
 There's also one or two cases where we want to multiply a vector by another vector element-wise. Add another `Mul` implementation for `Vec3` to do this.
 
-### Task 2.3
+### Task 2.3: Macros
 
 We're gonna take a quick adventure down the rabbit hole that is Rust macros to create a ~~dirty hack~~ shorthand for initialising new vectors, since we're going to be doing an awful lot of it. I recommend having a read through [this blog post](https://blog.logrocket.com/macros-in-rust-a-tutorial-with-examples/), and some of the [Rust by Example](https://doc.rust-lang.org/rust-by-example/macros.html) chapter, then I'll walk you through it.
 
@@ -166,11 +166,11 @@ Using this, you can plug in a different parameter `t` to get a position anywhere
 
 ![](https://raytracing.github.io/images/fig-1.02-lerp.jpg)
 
-### 3.1
+### 3.1: Ray Struct
 
 Create a new `ray` module. Create a new struct in it that stores the origin `Point` and direction `Vec3` of a ray, and add a method `Ray::at(&self, t: f64) -> Point` that returns the point in 3d space that is `t` units along the ray. Either create or derive a constructor for your `Ray` too.
 
-### 3.2
+### 3.2: Ray Directions
 
 Now we have rays, we can finally trace some. The basic concept is that the ray tracer casts rays from a "camera" and through each pixel, calculating the colour of each pixel. Like light, but in reverse. We'll start with a simple camera defined with a few basic parameters, and a `ray::colour` function that computes the colour of a ray.
 
@@ -189,7 +189,7 @@ Write a `colour(&Ray) -> Colour` function that just always returns `v!(0, 1.0, 0
 
 You should get a nice green rectangle. I appreciate theres a lot going on there, so ask for help or take a look at the solutions if you're not sure.
 
-### 3.3
+### 3.3: Sky
 
 To make the background for our raytraced image, we're gonna add add a nice blue-white gradient. In your colour function, add code to normalise the ray's direction vector, then scale it from $0 \leq t \leq 1$ from $-1 \leq t \leq 1$. We're then gonna do a neat graphics trick called a lerp, or linear interpolation, where we blend two colours: `blended_value = (1-t) * start_value + t * end_value`. Use white for your starting colour, a nice `(0.5, 0.7, 1.0)` blue for your end colour, and blend based upon the y coordinate. You should end up with something like:
 
@@ -257,7 +257,7 @@ There are three possible cases, which the determinant of the formula (the $b^2 -
 
 Empowered with some A-level linear algebra, we can go forth and draw balls.
 
-### 4.1
+### 4.1: Sphere Struct
 
 Create another file `object.rs` that will contain code to do with objects. In there, create a new struct `Sphere` that holds the centre point and radius. Derive a constructor for it. Implement a method `hit` that takes a ray as an argument, and returns `true` if there is at least one intersection, and false otherwise.
 
@@ -267,7 +267,7 @@ Add a call to `Sphere::hit` in your `ray::colour` function, checking for interse
 
 You have a basic ray tracer that can calculate intersections, congrats! This has zero bells and/or whistles so far, but we'll get to shading and reflection later on.
 
-### 4.2
+### 4.2: Rayon (multi-threading)
 
 How long did that take to execute on your machine? You might notice the raytracer starting to chung from here on out, because its doing a lot of maths, and it'll start to do a lot lot more maths as we add more code. This is technically what GPUs are for, but that's a whole other rabbit hole. We can do a few things to increase performance though. Introducing, my favourite crate: [`Rayon`](https://crates.io/crates/rayon).
 
@@ -301,7 +301,7 @@ There are more efficient ways to utilise rayon than this (notably `par_bridge` i
 
 ## 5: Surface Normals & Multiple Objects
 
-### Task 5.1
+### Task 5.1: Normal Shading
 
 A surface normal is a vector that is perpendicular to the surface of an object. You, stood up, are a surface normal to the planet earth. To be able to shade our sphere, we need to know the surface normal at the point where the ray intersects with the sphere.
 
@@ -323,7 +323,7 @@ You should get this lovely image of a shaded sphere:
 
 ![](./img/5-1.png)
 
-### Task 5.2
+### Task 5.2: Hit
 
 One sphere is boring, lets have some more. And more than just spheres too! Let's create a trait to represent objects so we can easily extend our raytracer with whatever we want. The `Object` trait will contain our `hit()` function, so any shape/object/thing can then implement it to be able to tell us if a ray has hit it or not.
 
@@ -338,7 +338,7 @@ Create the `Hit` struct, add the `Object` trait with it's one function, and then
 
 Update your colour function to use the `Object` trait implementation of `Sphere::hit`. Put the bounds as $0 < x < \infty$ for now, so all intersections in front of the camera are valid. Also update it to deal with the new return type, but doing the same thing as before, shading based upon the normal. Make sure there's no change from the last task so you know everything is working.
 
-### Task 5.3
+### Task 5.3: Inside Checks
 
 We need to talk about surface normals again. The normal can either point outside the sphere, or be negated and point inside. The normal we're finding at the moment will always point against whichever side the ray hits from (rays will start to hit spheres on the inside when we get to glass). We need to know which side a ray hits from, and also need to introduce some consistency in which direction normals point.
 
@@ -356,7 +356,7 @@ Where $\theta$ is the angle between the two vectors joined tip-to-tip. This mean
 
 Implement this logic in your code, making sure that in the current render `front_face` is always true. If there's any bugs in your implementation you might not catch them all now because we have no cases where `front_face` is false yet, so double and triple check your maths. You could shuffle the sphere and camera positions around to put the camera _inside_ the sphere, and see what your results look like.
 
-### Task 5.4
+### Task 5.4: Scenes
 
 We have implemented `Object` for `Sphere`, but what about multiple spheres? We don't want to check _every_ object for intersection for each ray, so we're going to implement `Object` for a list of `Objects`. Well how is that going to work, can you implement a trait for a list of itself? Yes, you can. We're going to use [trait objects](https://doc.rust-lang.org/book/ch17-02-trait-objects.html). Trait objects are pointers to types, where the only thing known about that type is that it implements a specific trait. If you're familiar with dynamic dispatch, this is dynamic dispatch in Rust. We can create a `Vec<dyn Object>`, which Rust reads as "a list of items which all implement `Object`, and I'll figure the rest out at runtime".
 
@@ -366,7 +366,7 @@ Now we have the type nailed down, implement `Object for Scene`. The idea is you 
 
 The code you wrote using Rayon earlier might be complaining now. Rust is very strict about what types can work with multithreaded code, which it enforces though the [Send and Sync traits](https://doc.rust-lang.org/book/ch16-04-extensible-concurrency-sync-and-send.html). Rust doesn't know for sure that a `dyn Object` is safe to share between threads, so we need to add a `Sync` bound on our type signature to tell the compiler that everything in this list should be an `Object`, but also `Sync`. All our types implementing `Object` will automatically be `Sync`, so we don't need to worry about this beyond letting the compiler and rayon know we have everything under control. Change your type signature again to be `Vec<Box<dyn Object + Sync>>`, and that should shut the compiler up.5
 
-### Task 5.5
+### Task 5.5: "Ground"
 
 In main, add another sphere at `(0, -100.5, -1)` with radius 100, and then add both your spheres into a `Vec` to create a `Scene`. Change your colour function to take anything that implements `Object` (use generics or `impl` syntax for this, not trait objects again), and you should end up with something like this:
 
@@ -378,7 +378,7 @@ Note how the top of our little sphere is a similar colour to the top of our big 
 
 You might have noticed the slightly jagged edges on your sphere. This isn't the case with real cameras, because the edge pixels are a blend of the foreground and background. To achieve this, we're going to add antialiasing, which we'll acheive by taking multiple samples of each pixel and averaging them out.
 
-### Task 6.1
+### Task 6.1: Multisampling
 
 So that each sample isn't identical, we're going to slightly randomise the ray directions within each pixel, for which we will use our old friend, the `rand` crate. Add it to your package manifest. `rand::random::<T>()` is a generic function that will return a random `T`. In case of floats, `rand::random::<f64>()` returns a random number $0 \leq x < 1$.
 
@@ -388,7 +388,7 @@ Add a variable `let samples = n` to the top of `main`. Update the render loop to
 
 ![](./img/6-1.png)
 
-### Task 6.2
+### Task 6.2: Camera Struct
 
 Now seems like as good a time as any to abstract the camera out into it's own type. Create a new file `camera.rs`, and in it add a `Camera` struct, that contains:
 
@@ -400,7 +400,7 @@ Add a function to return the default camera, with the exact same configuration a
 
 Check you haven't introduced any bugs by making sure your render is the same as before.
 
-### Task 6.3
+### Task 6.3: Progress Bars
 
 Taking 100 samples of each pixels is probably making your renderer start to chug again. If it's really taking too long, try dropping the number of samples, but we can add a progress bar as a nice little touch to help us see how long its got left. We're going to use another crate: [`indicatif`](https://crates.io/crates/indicatif/0.16.2) (0.16 is required for the below styling to work, 0.17 changes syntax).
 
@@ -444,13 +444,13 @@ There are two unit radius spheres tangent to the hit point $p$ of a surface, one
 
 We need a way to pick a random point in a unit sphere. A rejection method is the easiest way to do this: pick a random point in a unit _cube_, and reject it and try again if it's not in the sphere. If we then normalise the vector to be actually _on_ the sphere, then it actually more accurately models Lambertian reflection. The original book has a [much more detailed discussion of modelling diffuse reflection](https://raytracing.github.io/books/RayTracingInOneWeekend.html#diffusematerials/truelambertianreflection), and I encourage you to read over it.
 
-### Task 7.1
+### Task 7.1: Ray bounce
 
 Write a function to do this by generating a vector whose elements are random numbers between -1 and 1. If the length of the vector is less than 1, then it's in the sphere.
 
 We're going to update the colour function to be recursive, casting reflection rays in a random direction. The direction of the reflected ray will be $\mathbf n + \mathbf S$, and will come from the impact point of the original ray (you can get all that data from your `Hit` struct, remember). Halve the result of the recursive call so that each reflected ray has less and less intensity, and return that.
 
-### Task 7.2
+### Task 7.2: Recursion limit
 
 If you ran this you probably blew the stack with infinite recursive calls. We need to limit the number of child rays to prevent infinite recursion. Add a depth parameter to the `colour` function to keep track of the current recursion depth. When the recursion hits max depth, say 50 rays for now, stop recursing and just return black.
 
@@ -458,7 +458,7 @@ You should have an image like so
 
 ![](./img/7-2.png)
 
-### Task 7.3
+### Task 7.3: Gamma correction
 
 Take a look at the the shadowing under the sphere. This picture is very dark, but our spheres only absorb half the energy on each bounce, so they are 50% reflectors. If you can’t see the shadow, don’t worry, we will fix that now. These spheres should look pretty light, about a light gray. The reason for this is that almost all image viewers assume that the image is “gamma corrected”, meaning the 0 to 1 values have some transform before being stored as a byte. There are many good reasons for that, but for our purposes we just need to be aware of it. To a first approximation, we can use “gamma 2” which means raising the color to the power 1/gamma, or in our simple case 0.5, which is a square root.
 
@@ -466,7 +466,7 @@ Add a line to the `Vector::to_rgb()` function to correct for this, taking the sq
 
 ![](./img/7-3.png)
 
-### Task 7.4
+### Task 7.4: Shadow Acne
 
 There is another subtle bug in there. Some of the reflected rays are reflecting from not exactly $t=0$, but at $t=0.000001$ or whatever rough floating point approximation we end up with. Ignoring hits very near to 0 can fix this, by passing the minimum bound as `0.00001` instead of `0` to the hit function. The updated render looks lighter and much cleaner:
 
@@ -478,7 +478,7 @@ This fixes the problem known as "shadow acne".
 
 We have diffuse materials modelled by lambertian reflectance, so let's add a metal material. Before we do that, we'll create some abstractions for dealing with different materials and reflections.
 
-### Task 8.1
+### Task 8.1: Lambertian Material
 
 We're going to create a trait to describe how light scatters off different materials:
 
@@ -494,7 +494,7 @@ We'll add an implementation of `Material` to describe lambertian reflectance. Th
 
 The `Material` impl for `Lambertian` should contain the logic that's currently in `ray::colour`. Calculate the scatter direction, create the reflected ray, and return it inside a `Reflection` struct. The amount the reflected ray is attenuated by is the colour of the material.
 
-### Task 8.2
+### Task 8.2: Use Materials
 
 We need to make our objects aware of the fact that they can be different materials too. The `Sphere` struct needs an extra field, `material`, the type of which should be any type implementing the `Material` trait. That's right, your struct is going to need to be generic.
 
@@ -505,13 +505,13 @@ You'll need to update the two spheres created in `main` too to account for this.
 
 There's a lot of re-architecting of the raytracer going on here, but nothing actually changes functionally yet. Make sure the rendered image is the same. If you set the random seed to be the same, Git will even tell you if your file has changed or not!
 
-### Task 8.3
+### Task 8.3: Edge Cases
 
 Take another closer look at `Lambertian::scatter`. If the random unit vector generated is _exactly_ opposite the normal vector, the two will sum to zero and the scatter direction will be zero, meaning we'll have no reflected ray. In our implementation, this means we get a black pixel where we should have colour. We need to account for this by checking if the scatter direction is zero, and if it is we'll just set the scatter direction to be the normal.
 
 Floating point zero is weird because it isn't exact (we already had to deal with shadow acne), so add a method to check if a vector is zero, returning `true` if all three of it's elements are within some small tolerance of zero. If this is the case, replace the scatter direction with the hit normal.
 
-### Task 8.4
+### Task 8.4: Smooth Reflection
 
 Now we've built up our abstractions and tested they work on the existing logic, we can extend the raytracer to include a metal material.
 
@@ -540,7 +540,7 @@ Your new render should look like this. See how the metal spheres are reflecting 
 
 ![](./img/8-4.png)
 
-### Task 8.5
+### Task 8.5: Fuzziness
 
 Right now the metals look perfectly smooth, which is very rarely the case in real life. We can add a little fuzziness by randomising the reflected rays slightly, with a fuzz factor. We'll change the scattered ray direction to be $\mathbf r + f \mathbf S$, where `f` is a scalar fuzz factor, and $S$ is a random unit vector. Add a `fuzz` field to the `Metal` material struct, and update the reflected ray direction to be a little fuzzy, reusing the random unit vector function from earlier.
 
@@ -585,7 +585,7 @@ This gives us $\mathbf{R}_{\perp}'$ in terms of known quantities:
 
 $$\mathbf{R}_{\perp}' = \frac{\eta}{\eta '} (\mathbf{R} + \mathbf{n}(-\mathbf{R} \cdot \mathbf{n})) $$
 
-### Task 9.1
+### Task 9.1: Refraction
 
 Write a small helper function in `material.rs` to return the direction of the refracted ray. There's a lot of maths here, but the idea is:
 
@@ -594,7 +594,7 @@ Write a small helper function in `material.rs` to return the direction of the re
 - Calculate $\mathbf{R}_{\perp}'$ and $\mathbf{R}_{\parallel}'$
 - Return the sum of the two
 
-### Task 9.2
+### Task 9.2: Dielectric
 
 You can refract rays, so let's add a dielectric material that does just that with it's scatter method. Create a new struct `Dielectric` with a single field, it's refraction ratio ($\frac{\eta}{\eta '}$). Create a new `Material` impl for it, such that `scatter` returns a new reflected (\*technically it's refracted now) ray with a colour attenutation of 1 (no attenuation), and direction vector calculated by your refract function. Don't forget to normalise your incident ray before using it, as we made the assumption that $\mathbf{a} = \mathbf{b} = 1$ when we did the maths above.
 
@@ -604,7 +604,7 @@ Update the scene to change the left sphere to be a dielectric with a ratio of 1.
 
 ![](./img/9-2.png)
 
-### Task 9.3
+### Task 9.3: Total Internal Reflection
 
 That _might_ not look quite right, which is because there's a flaw in our approximations.
 
@@ -630,7 +630,7 @@ You should get something that looks a bit more correct:
 
 If you can't see much of a difference between the two for this scene, I wouldn't blame you. For the example scene, total internal reflection is never really visible as it will only happen as a ray tries to go from glass to air, so play around with the scene and see if you can see the difference.
 
-### Task 9.4
+### Task 9.4: Schlick
 
 Let's play around with our glass model again. Real glass has a reflectivity that varies with angle (look at a window form a steep angle and it becomes more of a mirror). We're going to implement this behaviour using a neat polynomial approximation called the [Schlick approximation](https://en.wikipedia.org/wiki/Schlick%27s_approximation) (because the [actual equation](https://en.wikipedia.org/wiki/Fresnel_equations) is very big and a bit scary).
 
@@ -658,7 +658,7 @@ Notice how the sphere looks a little fuzzier around the edges, and a bit more re
 
 Cameras are hard, and there's a lot of geometry here so follow closely.
 
-## 10.1
+## 10.1: FoV
 
 We'll start by allowing an adjustable field of view (FoV): the angle that can be seen through camera. The image isn't square so the FoV will be different horizontally and vertically. We'll specify the vertical one in degrees.
 
@@ -677,7 +677,7 @@ Your image should look like this, a wide-angle view of the two spheres. Play aro
 
 ![](./img/10-1.png)
 
-## 10.2
+## 10.2: Direction
 
 The next step is being able to move the camera to wherever we want. Consider two points: `look_from`, the position of the camera where we are looking from; and `look_at`, the point we wish to look at.
 
