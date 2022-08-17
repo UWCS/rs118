@@ -269,7 +269,7 @@ You have a basic ray tracer that can calculate intersections, congrats! This has
 
 ### 4.2
 
-How long did that take to execute on your machine? You might notice the raytracer starting to chung from here on out, because its doing a lot of maths, and it'll start to do a lot lot more maths as we add more code. This is technically what GPUs are for, but that's a whole other rabbit hole. We can do a few things to increase performance though. Introducing, my favourite crate: [`Rayon`](https://github.com/rayon-rs/rayon).
+How long did that take to execute on your machine? You might notice the raytracer starting to chung from here on out, because its doing a lot of maths, and it'll start to do a lot lot more maths as we add more code. This is technically what GPUs are for, but that's a whole other rabbit hole. We can do a few things to increase performance though. Introducing, my favourite crate: [`Rayon`](https://crates.io/crates/rayon).
 
 Rayon is a data parallelism library, that works by converting your iterators to parallel iterators, and then distributing work accross all the cores in your system. We're going to re-write our main rendering loop as an iterator, and then drop rayon in to make it (hopefully, depending on how many cores you have) a lot faster.
 
@@ -402,7 +402,7 @@ Check you haven't introduced any bugs by making sure your render is the same as 
 
 ### Task 6.3
 
-Taking 100 samples of each pixels is probably making your renderer start to chug again. If it's really taking too long, try dropping the number of samples, but we can add a progress bar as a nice little touch to help us see how long its got left. We're going to use another crate: [`indicatif`](https://docs.rs/indicatif/latest/indicatif/).
+Taking 100 samples of each pixels is probably making your renderer start to chug again. If it's really taking too long, try dropping the number of samples, but we can add a progress bar as a nice little touch to help us see how long its got left. We're going to use another crate: [`indicatif`](https://crates.io/crates/indicatif/0.16.2) (0.16 is required for the below styling to work, 0.17 changes syntax).
 
 Indicatif works by binding a progress bar to iterators, and then shows a progress bar in the console as the iterator progresses. Have a read over the docs and examples to get an example of how it works.
 
