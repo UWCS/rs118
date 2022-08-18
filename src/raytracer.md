@@ -10,21 +10,8 @@ There's a fair amount of vector maths involved here but don't let that intimidat
 
 Also, unlike the original book, I've not included the code snippets inline, as trying to implement the solution yourself is much more rewarding. Feel free to take a look at the solutions if you get stuck, but try to solve the tasks yourself as you'll find it much more rewarding. Remember to make use of your resources!
 
-| Contents                                                                      |
-| ----------------------------------------------------------------------------- |
-| 1: [Images](#1-images)                                                        |
-| 2: [Vectors](#2-vectors)                                                      |
-| 3: [Rays](#3-rays)                                                            |
-| 4: [Spheres](#4-spheres)                                                      |
-| 5: [Surface Normals & Multiple Objects](#5-surface-normals--multiple-objects) |
-| 6: [Antialising](#6-antialiasing)                                             |
-| 7: [Diffuse Materials](#7-diffuse-materials)                                  |
-| 8: [Metal](#8-metal)                                                          |
-| 9: [Dielectrics](#9-dielectrics)                                              |
-| 10: [Positionable Camera](#10-positionable-camera)                            |
-| 11: [Depth of Field](#11-depth-of-field)                                      |
-| 12: [Final Render](#12-a-final-render)                                        |
-| 13: [What Next?](#what-next)                                                  |
+# Contents
+[[_TOC_]]
 
 ## 1: Images
 

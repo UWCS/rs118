@@ -20,3 +20,9 @@ enable = true
 [output.html.playground]
 editable = true
 line-numbers = true
+
+[preprocessor.toc]
+command = "mdbook-toc"
+renderer = ["html"]
+marker = "[[_TOC_]]"
+max-level = 2
