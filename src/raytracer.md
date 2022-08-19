@@ -151,7 +151,7 @@ All ray tracers need some data type to represent rays. Think of a ray of a funct
 
 Using this, you can plug in a different parameter `t` to get a position anywhere on the line/ray.
 
-![](https://raytracing.github.io/images/fig-1.02-lerp.jpg)
+{{#include ./img/rt/fig-1.02-lerp.svg}}
 
 ### 3.1: Ray Struct
 
@@ -163,7 +163,7 @@ Now we have rays, we can finally trace some. The basic concept is that the ray t
 
 Our basic image will use a 16:9 aspect ratio, because it's common, and because with a square image its easy to introduce bugs by accidentally transposing `x` and `y`. We'll also set up a virtual viewport that our rays will pass through into our scene, that will be two units wide and one unit away from the camera. The camera will be at $(0, 0, 0)$, with the `y` axis going up and `x` to the left. To respect the convention of a right handed coordinate system, into the screen is the negative z-axis. We will traverse the screen from the upper left hand corner, and use two offset vectors $\mathbf u$ and $\mathbf v$ along the screen sides to move the ray across the screen.
 
-![](https://raytracing.github.io/images/fig-1.03-cam-geom.jpg)
+{{#include ./img/rt/fig-1.03-cam-geom.svg}}
 
 - Define your aspect ratio as `16/9`, your width as 400, and your height accordingly.
 - The viewport height should be 2, and width should be set accordingly as per the aspect ratio.
@@ -240,7 +240,7 @@ $$
 
 There are three possible cases, which the determinant of the formula (the $b^2 - 4ac$ bit), will tell us:
 
-![](https://raytracing.github.io/images/fig-1.04-ray-sphere.jpg)
+{{#include ./img/rt/fig-1.04-ray-sphere.svg}}
 
 Empowered with some A-level linear algebra, we can go forth and draw balls.
 
@@ -292,7 +292,7 @@ There are more efficient ways to utilise rayon than this (notably `par_bridge` i
 
 A surface normal is a vector that is perpendicular to the surface of an object. You, stood up, are a surface normal to the planet earth. To be able to shade our sphere, we need to know the surface normal at the point where the ray intersects with the sphere.
 
-![](https://raytracing.github.io/images/fig-1.05-sphere-normal.jpg)
+{{#include ./img/rt/fig-1.05-sphere-normal.svg}}
 
 We'll normalise our normals (make them unit vectors), and visualise them using a colour map, scaling the vector elements from the range $-1 \leq x \leq 1$ to $0 \leq x \leq 1$. This means we need to do two things.
 
@@ -329,7 +329,7 @@ Update your colour function to use the `Object` trait implementation of `Sphere:
 
 We need to talk about surface normals again. The normal can either point outside the sphere, or be negated and point inside. The normal we're finding at the moment will always point against whichever side the ray hits from (rays will start to hit spheres on the inside when we get to glass). We need to know which side a ray hits from, and also need to introduce some consistency in which direction normals point.
 
-![](https://raytracing.github.io/images/fig-1.06-normal-sides.jpg)
+{{#include ./img/rt/fig-1.06-normal-sides.svg}}
 
 To make this as easy as possible, we're going to make normals always point outward, and then store in the `Hit` struct which side of the object the ray hit. Add a boolean field called `front_face` to the struct, that will be `true` when the ray hits the outer surface, and `false` when it hits the inner surface.
 
@@ -421,13 +421,13 @@ Indicatif lets you create some really neat progress bars, so have a play around 
 
 We're about ready to start making objects look realistic. Diffuse objects that don’t emit light merely take on the color of their surroundings, but they modulate that with their own intrinsic color. Light that reflects off a diffuse surface has its direction randomized. So, if we send three rays into a crack between two diffuse surfaces they will each have different random behaviour, as shown.
 
-![](https://raytracing.github.io/images/fig-1.08-light-bounce.jpg)
+{{#include ./img/rt/fig-1.08-light-bounce.svg}}
 
 They also may be absorbed rather than reflected. The darker the surface, the more likely absorption is (that's why it's dark).[Lambertian reflectance](https://en.wikipedia.org/wiki/Lambertian_reflectance) is the property that defines an ideal diffusely reflecting surface, and we're going to model it.
 
 There are two unit radius spheres tangent to the hit point $p$ of a surface, one inside and one outside the surface. They have centres at $(\mathbf P + \mathbf n)$ and $(\mathbf P - \mathbf n)$, where $\mathbf n$ is the normal to the surface at $\mathbf P$. Pick a random point $S$ inside the unit radius sphere and send a ray from the hit point $\mathbf P$ to the random point $\mathbf S$, to give us a random vector $(\mathbf S - \mathbf P)$, that will be the diffuse reflected ray.
 
-![](https://raytracing.github.io/images/fig-1.09-rand-vec.jpg)
+{{#include ./img/rt/fig-1.09-rand-vec.svg}}
 
 We need a way to pick a random point in a unit sphere. A rejection method is the easiest way to do this: pick a random point in a unit _cube_, and reject it and try again if it's not in the sphere. If we then normalise the vector to be actually _on_ the sphere, then it actually more accurately models Lambertian reflection. The original book has a [much more detailed discussion of modelling diffuse reflection](https://raytracing.github.io/books/RayTracingInOneWeekend.html#diffusematerials/truelambertianreflection), and I encourage you to read over it.
 
@@ -504,7 +504,7 @@ Now we've built up our abstractions and tested they work on the existing logic, 
 
 For smooth metal the ray won't be randomly scattered. We need to do the maths to work out the direction of reflected rays.
 
-![](https://raytracing.github.io/images/fig-1.11-reflection.jpg)
+{{#include ./img/rt/fig-1.11-reflection.svg}}
 
 The reflected ray direction in red is $\mathbf v + 2 \mathbf b$. The length of $\mathbf b$ is $\mathbf b \cdot n$ and it goes in the same direction as $\mathbf n$, so we can calculate it as $(\mathbf b \cdot \mathbf n) \mathbf n$. So we have:
 
@@ -547,7 +547,7 @@ $$
 
 Where $\theta$ and $\theta '$ are angles from the normal, and $\eta$ and $\eta '$ are the refractive indices of the two materials. We want to solve for $\theta '$, to get the angle of our new ray.
 
-![](https://raytracing.github.io/images/fig-1.13-refraction.jpg)
+{{#include ./img/rt/fig-1.13-refraction.svg}}
 
 On the refracted side of the surface there is a refracted ray $\mathbf{R} '$ and a normal $\mathbf{n}'$, and an angle $\theta '$ between them. The ray $\mathbf{R} '$ can be split into the sum of it's two components parallel and perpendicular to $\mathbf{n}'$:
 
@@ -651,7 +651,7 @@ We'll start by allowing an adjustable field of view (FoV): the angle that can be
 
 The image below shows our FoV angle $\theta$ coming from the origin and looking into the $z=-1$ plane, same as before. $h$ is therefore the height of our viewport, $h = \tan \frac{\theta}{2}$. The total height of our image will be `2 * h`, and the width will be `height * aspect_ratio`.
 
-![](https://raytracing.github.io/images/fig-1.14-cam-view-geom.jpg)
+{{#include ./img/rt/fig-1.14-cam-view-geom.svg}}
 
 Create a `new()` function for `Camera` to take an FoV and aspect ratio as arguments, and then calculate the viewport width and height instead of hardcoding them. Make sure you check your angle units!
 
@@ -668,13 +668,13 @@ Your image should look like this, a wide-angle view of the two spheres. Play aro
 
 The next step is being able to move the camera to wherever we want. Consider two points: `look_from`, the position of the camera where we are looking from; and `look_at`, the point we wish to look at.
 
-![](https://raytracing.github.io/images/fig-1.15-cam-view-dir.jpg)
+{{#include ./img/rt/fig-1.15-cam-view-dir.svg}}
 
 This gives us the vector that is facing the camera, but we still need to specify the roll, or tilt of the camera. Think about it as if you're looking from your eyes to a point, but you can still rotate your head about your nose. We need an "up" vector for the camera, which can be any vector orthogonal to the view direction (we can actually just use any vector we want, and then project it onto the plane). This will be the "view up" vector, $v_{up}$.
 
 We can use vector cross products to form an [orthonormal basis](https://en.wikipedia.org/wiki/Orthonormal_basis) $(u, v, w)$ to describe our camera's orientation: 3 unit vectors all at right angles to each other which describe the 3D space.
 
-![](https://raytracing.github.io/images/fig-1.16-cam-view-up.jpg)
+{{#include ./img/rt/fig-1.16-cam-view-up.svg}}
 
 - $v_{up}$ is any vector that we specify
 - $w$ is the vector `look_from - look_at`, so $-w$ is our view direction
@@ -705,7 +705,10 @@ Our final feature for now is implementing depth of field, or defocus blur. in th
 
 There is a plane in our image where everything in that plane will be in perfect focus, and everything closer or further will blur. The distance between this focus plane and our camera lens is the focus distance. Real cameras have complex compound lenses, but we will use a simple thin lens approximation, more similar to how the eye works:
 
-![](https://raytracing.github.io/images/fig-1.17-cam-lens.jpg)
+{{#include ./img/rt/fig-1.17-cam-lens.svg}}
+
+
+{{#include ./img/rt/fig-1.17-cam-lens-2.svg}}
 
 We'll implement this by making the origin of each ray a random point within a disc centered on the `look_from` point, to model a lens. The larger the disc (lens), the larger the defocus blur.
 
