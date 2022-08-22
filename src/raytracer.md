@@ -8,7 +8,7 @@ This tutorial is adapted from the excellent [_Ray Tracing in One Weekend_](https
 
 There's a fair amount of vector maths involved here but don't let that intimidate you. I'll try to explain it all well enough that you don't need a maths degree to follow what's going on.
 
-Also, unlike the original book, I've not included the code snippets inline, as trying to implement the solution yourself is much more rewarding. Feel free to take a look at the solutions if you get stuck, but try to solve the tasks yourself. Remember to make use of your resources!
+Also, unlike the original book, I've not included the code snippets inline, as trying to implement the solution yourself is much more rewarding. Feel free to take a look at the solutions if you get stuck, but try to solve the tasks yourself as you'll get more out of it. Remember to make use of your resources!
 
 ## Contents
 [[_TOC_]]
