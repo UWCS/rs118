@@ -169,6 +169,9 @@ We'll also set up a virtual viewport that represents the screen in the world. Fo
 
 {{#include ./img/rt/fig-1.03-cam-geom.svg}}
 
+{{#include ./img/rt/fig-1.03-cam-geom-2.svg}}
+
+
 - Define your aspect ratio as `16/9`, your width as 400, and your height accordingly.
 - The viewport height should be 2, and width should be set accordingly as per the aspect ratio.
 - The focal length should be 1
@@ -368,7 +371,9 @@ Note how the top of our little sphere is a similar colour to the top of our big 
 
 ## 6: Antialiasing
 
-You might have noticed the slightly jagged edges on your sphere. This isn't the case with real cameras, because the edge pixels are a blend of the foreground and background. To achieve this, we're going to add antialiasing, which we'll acheive by taking multiple samples of each pixel and averaging them out.
+
+{{#include ./img/rt/fig-antialias.svg}}
+
 
 ### Task 6.1: Multisampling
 
