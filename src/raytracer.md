@@ -125,7 +125,7 @@ macro_rules! v {
 }
 ```
 
-We'll add another neat little trick using `From` again. `f64::from` accepts any value that can be easily converted to an f64, and converts it. For example, we can do `f64::from(0_u8)`, `f64::from(0_i32)` and `f64::from(0.0_f32)`, and get `0.0_f64` from all of them. Using this in our macro lets it be a little more flexible.
+We'll add another neat little trick using `From` again. `f64::from` accepts any value that can be easily converted to a f64, and converts it. For example, we can do `f64::from(0_u8)`, `f64::from(0_i32)` and `f64::from(0.0_f32)`, and get `0.0_f64` from all of them. Using this in our macro lets it be a little more flexible.
 
 ```rust
 #[macro_export]
@@ -186,7 +186,7 @@ You should get a nice green rectangle. I appreciate there's a lot going on here 
 
 ### 3.3: Sky
 
-To make the background for our raytraced image, we're gonna add add a nice blue-white gradient. In your colour function, add code to normalise the ray's direction vector, then scale it from $-1 \leq t \leq 1$ from $0 \leq t \leq 1$. We're then gonna do a neat graphics trick called a lerp, or linear interpolation, where we blend two colours: `blended_value = (1-t) * start_value + t * end_value`. Use white for your starting colour, a nice `(0.5, 0.7, 1.0)` blue for your end colour, and blend based upon the y coordinate. You should end up with something like:
+To make the background for our raytraced image, we're gonna add a nice blue-white gradient. In your colour function, add code to normalise the ray's direction vector, then scale it from $-1 \leq t \leq 1$ from $0 \leq t \leq 1$. We're then gonna do a neat graphics trick called a lerp, or linear interpolation, where we blend two colours: `blended_value = (1-t) * start_value + t * end_value`. Use white for your starting colour, a nice `(0.5, 0.7, 1.0)` blue for your end colour, and blend based upon the y coordinate. You should end up with something like:
 
 ![](./img/3-3.png)
 
@@ -194,7 +194,7 @@ If your colours don't look similar, or it's upside down, check your geometry is 
 
 ## 4: Spheres
 
-Spheres are often used in raytracers because its fairly easy to work out if a ray has hit one or not. The equation for a sphere centred at the origin with radius $r$ is:
+Spheres are often used in raytracers because it's fairly easy to work out if a ray has hit one or not. The equation for a sphere centred at the origin with radius $r$ is:
 
 $$
 x^2 + y^2 + z^2 = r^2
@@ -264,9 +264,9 @@ You have a basic ray tracer that can calculate intersections, congrats! This has
 
 ### 4.2: Rayon (multi-threading)
 
-How long did that take to execute on your machine? You might notice the raytracer starting to chug from here on out, because its doing a lot of maths, and it'll start to do a lot lot more maths as we add more code. This is really what GPUs are for, but that's a whole other rabbit hole. We can do a few things to increase performance though. Introducing, my favourite crate: [`Rayon`](https://crates.io/crates/rayon).
+How long did that take to execute on your machine? You might notice the raytracer starting to chug from here on out, because it's doing a lot of maths, and it'll start to do a lot more maths as we add more code. This is really what GPUs are for, but that's a whole other rabbit hole. We can do a few things to increase performance though. Introducing, my favourite crate: [`Rayon`](https://crates.io/crates/rayon).
 
-Rayon is a data parallelism library that works by converting your iterators to parallel iterators, and then distributing work accross all the cores in your system. We're going to re-write our main rendering loop as an iterator, and then drop Rayon in to make it a lot faster (depending on how many cores you have).
+Rayon is a data parallelism library that works by converting your iterators to parallel iterators, and then distributing work across all the cores in your system. We're going to re-write our main rendering loop as an iterator, and then drop Rayon in to make it a lot faster (depending on how many cores you have).
 
 Where we are using for loops, we generally convert them to iterators using the [`for_each`](https://doc.rust-lang.org/stable/std/iter/trait.Iterator.html#method.for_each) adaptor, which just calls a closure on each item of an iterator. The two examples below are equivalent.
 
@@ -288,7 +288,7 @@ to:
 })
 ```
 
-Convert your rendering loop in `main` to use `for_each`. Then, import Rayon's prelude with `use rayon::prelude::*`, and add a call to [`par_bridge`](https://docs.rs/rayon/latest/rayon/iter/trait.ParallelBridge.html#tymethod.par_bridge) before your `for_each` to use Rayon's parallel bridge to parallelise your iterator. Run your code to make sure nothing is broken, and you should notice a speedup.
+Convert your rendering loop in `main` to use `for_each`. Then, import Rayon's prelude with `use rayon::prelude::*`, and add a call to [`par_bridge`](https://docs.rs/rayon/latest/rayon/iter/trait.ParallelBridge.html#tymethod.par_bridge) before your `for_each` to use Rayon's parallel bridge to parallelise your iterator. Run your code to make sure nothing is broken, and you should notice a speed-up.
 
 Another easy way to get free speed is to run in release mode. Instead of just `cargo run`, doing `cargo run --release` will compile your code with optimisations and no debug symbols to help speed it up, at the cost of longer compile times.
 
@@ -320,7 +320,7 @@ You should get this lovely image of a shaded sphere:
 
 ### Task 5.2: Hit
 
-Only one sphere is boring, lets have some more. Let's create a trait to represent objects so we can easily extend our raytracer with whatever we want. The `Object` trait will contain our `hit()` function, so any shape/object/thing can then implement it to be able to tell us if a ray has hit it or not.
+Only one sphere is boring, let's have some more. Let's create a trait to represent objects so we can easily extend our raytracer with whatever we want. The `Object` trait will contain our `hit()` function, so any shape/object/thing can then implement it to be able to tell us if a ray has hit it or not.
 
 We'll extend the `hit()` function a bit here to, to be something more like `fn hit(&self, ray: &Ray, bounds: (f64, f64)) -> Option<Hit>`. The `bounds` will specify valid bounds for the parameter `t` (the solution of our quadratic equation) to lie in, and
 the `Hit` struct will bundle some more detailed information about a ray-object intersection. `Hit` will include:
@@ -329,7 +329,7 @@ the `Hit` struct will bundle some more detailed information about a ray-object i
 - The surface normal
 - The parameter `t`
 
-Create the `Hit` struct, add the `Object` trait with it's one function, and then implement it for `Sphere`. The old `Sphere::hit()` can go, as the new and improved `Sphere::hit()` should be part of the `Object` impl. You still need to determine if there is an intersection or not using the same calculations as before, and you'll now need to do some additional maths to find the closest of the two roots that is in within the bounds given. Calculate the surface normal and the intersection point here too, and pack it all into the `Hit` struct. If there is no intersection, continue to return `None`.
+Create the `Hit` struct, add the `Object` trait with its one function, and then implement it for `Sphere`. The old `Sphere::hit()` can go, as the new and improved `Sphere::hit()` should be part of the `Object` impl. You still need to determine if there is an intersection or not using the same calculations as before, and you'll now need to do some additional maths to find the closest of the two roots that is in within the bounds given. Calculate the surface normal and the intersection point here too, and pack it all into the `Hit` struct. If there is no intersection, continue to return `None`.
 
 Update your colour function to use the `Object` trait implementation of `Sphere::hit`. Put the bounds as $0 < x < \infty$ for now, so all intersections in front of the camera are valid. Also update it to deal with the new return type, but doing the same thing as before, shading based upon the normal. Make sure there's no change from the last task so you know everything is working.
 
@@ -349,7 +349,7 @@ $$
 
 Where $\theta$ is the angle between the two vectors joined tip-to-tip. This means that if the dot product of two vectors is 0, they are perpendicular. If the product is positive the two are at angles of less than 90 degrees, and if negative they lie at angles of between 90 and 180 degrees. So, if `ray.direction.dot(outward_normal) > 0`, then the ray has hit from the inside and we need to invert our normal and set `front_face` to false.
 
-Implement this logic in your code, making sure that in the current render `front_face` is always true. If there's any bugs in your implementation you might not catch them all now because we have no cases where `front_face` is false yet, so double and triple check your maths. You could shuffle the sphere and camera positions around to put the camera _inside_ the sphere, and see what your results look like.
+Implement this logic in your code, making sure that in the current render `front_face` is always true. If there are any bugs in your implementation you might not catch them all now because we have no cases where `front_face` is false yet, so double and triple check your maths. You could shuffle the sphere and camera positions around to put the camera _inside_ the sphere, and see what your results look like.
 
 ### Task 5.4: Scenes
 
@@ -367,11 +367,11 @@ In main, create a `Scene` of the existing sphere, then add another sphere at `(0
 
 ![](./img/5-5.png)
 
-It's quite convinient the "ground" appears green, since that happens to be the colour for a normal with high `y` (`G`) and small `x` and `z` (`r` and `b`). Note how it occurs on the top of the small sphere too.
+It's quite convenient the "ground" appears green, since that happens to be the colour for a normal with high `y` (`G`) and small `x` and `z` (`r` and `b`). Note how it occurs on the top of the small sphere too.
 
 ## 6: Antialiasing
 
-You might have noticed the slightly jagged and pixelated edges on your sphere. This is beacuse we are taking only a single ray (sample) per pixel, which is either sphere or background -- when many pixels will cover a region that is partly both. To combat this, we will use a form of anti-aliasing called supersampling.
+You might have noticed the slightly jagged and pixelated edges on your sphere. This is because we are taking only a single ray (sample) per pixel, which is either sphere or background -- when many pixels will cover a region that is partly both. To combat this, we will use a form of anti-aliasing called supersampling.
 
 {{#include ./img/rt/fig-antialias.svg}}
 
@@ -389,7 +389,7 @@ Add a variable `let samples = n` to the top of `main`. Update the render loop to
 
 ### Task 6.2: Camera Struct
 
-Now seems like as good a time as any to abstract the camera out into it's own type. Create a new file `camera.rs`, and in it add a `Camera` struct, that contains:
+Now seems like as good a time as any to abstract the camera out into its own type. Create a new file `camera.rs`, and in it add a `Camera` struct, that contains:
 
 - The camera's position, the ray origin
 - The position of the top left corner of the viewport
@@ -401,7 +401,7 @@ Check you haven't introduced any bugs by making sure your render is the same as 
 
 ### Task 6.3: Progress Bars
 
-Taking 100 samples of each pixels is probably making your renderer start to chug again. If it's really taking too long, try dropping the number of samples, but we can add a progress bar as a nice little touch to help us see how long its got left. We're going to use another crate: [`indicatif`](https://crates.io/crates/indicatif/0.16.2) (0.16 is required for the below styling to work, 0.17 changes the syntax).
+Taking 100 samples for each pixel is probably making your renderer start to chug again. If it's really taking too long, try dropping the number of samples, but we can add a progress bar as a nice little touch to help us see how long it's got left. We're going to use another crate: [`indicatif`](https://crates.io/crates/indicatif/0.16.2) (0.16 is required for the below styling to work, 0.17 changes the syntax).
 
 Indicatif works by binding a progress bar to iterators, and then shows a progress bar in the console as the iterator progresses. Have a read over the docs and examples to get an example of how it works.
 
@@ -412,7 +412,7 @@ Remember that we're using Rayon's parallel iterators instead of regular iterator
 indicatif = { version = "0.16", features = ["rayon"] }
 ```
 
-Add a progress bar with a given length to your program by declaring one in main using `ProgressBar::new()`. Configure it's style and format to your liking (the style I used is shown below). Add it to your parallel iterator using `progress_with()`.
+Add a progress bar with a given length to your program by declaring one in main using `ProgressBar::new()`. Configure its style and format to your liking (the style I used is shown below). Add it to your parallel iterator using `progress_with()`.
 
 ```rust, noplayground
 bar.set_style(
@@ -444,7 +444,7 @@ Light rays may also be absorbed rather than reflected. Darker surface have highe
 
 Light hitting the surface at an angle further from the normal have less colour influence, as they hit at a shallower angle. This property can be closely modelled by sampling in a unit sphere which has the surface as a tangent.
 
-This unit radius sphere tangent to the hit point $p$ of a surface which is outside the surface. This has its centre at $(\mathbf P + \mathbf n)$, where $\mathbf n$ is the normal to the surface at $\mathbf P$. Pick a random point $S$ inside the unit radius sphere and send a ray from the hit point $\mathbf P$ to the random point $\mathbf S$, to give us a random vector $(\mathbf S - \mathbf P)$, that will be the diffuse reflected ray.
+The unit radius sphere tangent to the hit point $p$ of a surface which is outside the surface. This has its centre at $(\mathbf P + \mathbf n)$, where $\mathbf n$ is the normal to the surface at $\mathbf P$. Pick a random point $S$ inside the unit radius sphere and send a ray from the hit point $\mathbf P$ to the random point $\mathbf S$, to give us a random vector $(\mathbf S - \mathbf P)$, that will be the diffuse reflected ray.
 
 {{#include ./img/rt/fig-1.09-rand-vec.svg}}
 
@@ -466,7 +466,7 @@ You should have an image like so
 
 ### Task 7.3: Gamma correction
 
-Take a look at the the shadowing under the sphere. This picture is very dark, but our spheres only absorb half the energy on each bounce, so they are 50% reflectors. If you can’t see the shadow, don’t worry, we will fix that now. These spheres should look pretty light, about a light gray. The reason for this is that almost all image viewers assume that the image is “gamma corrected”, meaning the 0 to 1 values have some transform before being stored as a byte. There are many good reasons for that, but for our purposes we just need to be aware of it. To a first approximation, we can use “gamma 2” which means raising the color to the power 1/gamma, or in our simple case 0.5, which is a square root.
+Take a look at the shadowing under the sphere. This picture is very dark, but our spheres only absorb half the energy on each bounce, so they are 50% reflectors. If you can’t see the shadow, don’t worry, we will fix that now. These spheres should look pretty light, about a light grey. The reason for this is that almost all image viewers assume that the image is “gamma corrected”, meaning the 0 to 1 values have some transform before being stored as a byte. There are many good reasons for that, but for our purposes we just need to be aware of it. To a first approximation, we can use “gamma 2” which means raising the colour to the power 1/gamma, or in our simple case 0.5, which is a square root.
 
 Add a line to the `From<Vec3> for Rgb<u8>` function to correct for this, taking the square root of all the values before converting them to bytes. Your render should look a bit lighter now, closer to what you'd expect for a 50% reflector:
 
@@ -496,7 +496,7 @@ pub trait Material {
 
 `Material::scatter` takes the incident ray and the `Hit` struct, and uses them to determine if there is a reflected ray. The `Reflection` struct contains the reflected ray, and also a vector to describe how the colour of the reflected ray is attenuated (because different materials will change the colour of reflected rays differently). Create a new file `material.rs`, and add `Material` and `Reflection` there.
 
-We'll add an implementation of `Material` to describe lambertian reflectance. The `Lambertian` struct needs a single field to describe how the colour of reflected rays is attenuated.
+We'll add an implementation of `Material` to describe Lambertian reflectance. The `Lambertian` struct needs a single field to describe how the colour of reflected rays is attenuated.
 
 The `Material` impl for `Lambertian` should contain the logic that's currently in `ray::colour`. Calculate the scatter direction, create the reflected ray, and return it inside a `Reflection` struct. The amount the reflected ray is attenuated by is the colour of the material.
 
@@ -515,7 +515,7 @@ There's a lot of re-architecting of the raytracer going on here, but nothing act
 
 Take another closer look at `Lambertian::scatter`. If the random unit vector generated is _exactly_ opposite the normal vector, the two will sum to zero and the scatter direction will be zero, meaning we'll have no reflected ray. In our implementation, this means we get a black pixel where we should have colour. We need to avoid this by checking if the scatter direction is zero, and if it is we'll just reset the scatter direction to the normal.
 
-Floating point zero is weird because it isn't exact (we already had to deal with shadow acne), so add a method to your vector to check if it is zero, returning `true` if all three of it's elements are within some small tolerance of zero (e.g. `1e-8`). If this is the case, replace the scatter direction with the hit normal.
+Floating point zero is weird because it isn't exact (we already had to deal with shadow acne), so add a method to your vector to check if it is zero, returning `true` if all three of its elements are within some small tolerance of zero (e.g. `1e-8`). If this is the case, replace the scatter direction with the hit normal.
 
 ### Task 8.4: Smooth Reflection
 
