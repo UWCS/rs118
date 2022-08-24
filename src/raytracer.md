@@ -11,6 +11,7 @@ There's a fair amount of vector maths involved here but don't let that intimidat
 Also, unlike the original book, I've not included the code snippets inline, as trying to implement the solution yourself is much more rewarding. Feel free to take a look at the solutions if you get stuck, but try to solve the tasks yourself as you'll get more out of it. Remember to make use of your resources!
 
 ## Contents
+
 [[_TOC_]]
 
 ## 1: Images
@@ -67,7 +68,7 @@ Create a new `vector.rs` file, and include it in the module tree with a `mod vec
 
 Add two type aliases `pub type Colour = Vec3` and `pub type Point = Vec3` too, you can add any other general vector methods you think might come in handy too.
 
-Since we are using `Vec3` for colours, it's also useful to add a method to convert `Vec3` into `image::Rgb`. Rust has a pair of traits to convert [`From`](https://doc.rust-lang.org/std/convert/trait.From.html) a type and [`Into`](https://doc.rust-lang.org/std/convert/trait.Into.html) a type. Implementing `Into<Rgb>` for `Vec8` might be tempting, but Rust provides a default implementation of `Into` that looks up the corresponding `From`. So, implement the trait `From<Vec3> for Rgb<u8>` and Rust will ensure `vec.into()` can convert to `Rgb` (the resulting type of `.into()` is inferred).
+Since we are using `Vec3` for colours, it's also useful to add a method to convert `Vec3` into `image::Rgb`. Rust has a pair of traits to convert [`From`](https://doc.rust-lang.org/std/convert/trait.From.html) a type and [`Into`](https://doc.rust-lang.org/std/convert/trait.Into.html) a type. These traits are the inverse of each other, so when you implement one, you get the other for free. The conventional way to do this is to implement `From` and let the compiler to `Into` for you, so go ahead and implement the trait `From<Vec3> for Rgb<u8>` and Rust will ensure `vec.into()` can convert to `Rgb` (the resulting type of `.into()` is inferred).
 
 ### Task 2.2: Vector Operations
 
@@ -161,16 +162,15 @@ Create a new `ray` module. Create a new struct in it that stores the origin `Poi
 
 Now we have rays, we can finally trace some. The basic concept is that the ray tracer casts rays from a "camera" and through each pixel, calculating the colour of each pixel. This is like tracing the light paths backwards. We'll start with a simple camera defined with a few basic parameters, and a `ray::colour` function that will trace and compute the resulting colour for a ray.
 
-Our basic image will use the very standard 16:9 aspect ratio, partly because with a square image it's easy to introduce bugs by accidentally transposing `x` and `y`. 
+Our basic image will use the very standard 16:9 aspect ratio, partly because with a square image it's easy to introduce bugs by accidentally transposing `x` and `y`.
 
 The camera will be at $(0, 0, 0)$, with the `y` axis going up and `x` to the left, as you'd expect. To maintain a right-handed coordinate system, the camera will face in the `-z` direction.
 
-We'll also set up a virtual viewport that represents the screen in the world. For each pixel, we will trace a ray out into the scene. This viewport will be two units wide and one unit away from the camera (facing -z).  We will traverse the screen from the upper left-hand corner, and use two offset vectors $\mathbf u$ and $\mathbf v$ along the screen sides to move the ray across the screen.
+We'll also set up a virtual viewport that represents the screen in the world. For each pixel, we will trace a ray out into the scene. This viewport will be two units wide and one unit away from the camera (facing -z). We will traverse the screen from the upper left-hand corner, and use two offset vectors $\mathbf u$ and $\mathbf v$ along the screen sides to move the ray across the screen.
 
 {{#include ./img/rt/fig-1.03-cam-geom.svg}}
 
 {{#include ./img/rt/fig-1.03-cam-geom-2.svg}}
-
 
 - Define your aspect ratio as `16/9`, your width as 400, and your height accordingly.
 - The viewport height should be 2, and width should be set accordingly as per the aspect ratio.
@@ -186,7 +186,7 @@ You should get a nice green rectangle. I appreciate there's a lot going on here 
 
 ### 3.3: Sky
 
-To make the background for our raytraced image, we're gonna add a nice blue-white gradient. In your colour function, add code to normalise the ray's direction vector, then scale it from $-1 \leq t \leq 1$ from $0 \leq t \leq 1$. We're then gonna do a neat graphics trick called a lerp, or linear interpolation, where we blend two colours: `blended_value = (1-t) * start_value + t * end_value`. Use white for your starting colour, a nice `(0.5, 0.7, 1.0)` blue for your end colour, and blend based upon the y coordinate. You should end up with something like:
+To make the background for our raytraced image, we're gonna add a nice blue-white gradient. In your colour function, add code to normalise the ray's direction vector, then scale it from $-1 \leq t \leq 1$ to $0 \leq t \leq 1$. We're then gonna do a neat graphics trick called a lerp, or linear interpolation, where we blend two colours: `blended_value = (1-t) * start_value + t * end_value`. Use white for your starting colour, a nice `(0.5, 0.7, 1.0)` blue for your end colour, and blend based upon the y coordinate. You should end up with something like:
 
 ![](./img/3-3.png)
 
@@ -233,7 +233,9 @@ The only unknown in that equation is $t$, so we have a quadratic. We can use eve
 $$
 t = \frac{-b \pm \sqrt{b^2 - 4ac}}{2a}
 $$
+
 where
+
 $$
 a = \mathbf v \cdot \mathbf v
 $$
@@ -250,7 +252,7 @@ There are three possible cases, which the determinant of the formula (the $b^2 -
 
 {{#include ./img/rt/fig-1.04-ray-sphere.svg}}
 
-Empowered with some A-level linear algebra, we can go forth and draw balls. 
+Empowered with some A-level linear algebra, we can go forth and draw balls.
 
 ### 4.1: Sphere Struct
 
@@ -333,9 +335,9 @@ Create the `Hit` struct, add the `Object` trait with its one function, and then 
 
 Update your colour function to use the `Object` trait implementation of `Sphere::hit`. Put the bounds as $0 < x < \infty$ for now, so all intersections in front of the camera are valid. Also update it to deal with the new return type, but doing the same thing as before, shading based upon the normal. Make sure there's no change from the last task so you know everything is working.
 
-### Task 5.3: Inside Checks
+### Task 5.3: Inside Out
 
-We need to talk about surface normals again. The normal is just a unit vector perpendicular to the surface, of which there is actually two: either pointing outside the sphere, or be negated and pointing inside. At the moment, the normal we're finding will always match whether the ray starts inside or outside the sphere (we will need inside when we get to glass). We need to know which side a ray hits from, and we'll need to be consistency in which direction the normals point.
+We need to talk about surface normals again. The normal is just a unit vector perpendicular to the surface, of which there is actually two: either pointing outside the sphere, and the inverse pointing inside. At the moment, the normal we're finding will always match whether the ray starts inside or outside the sphere (we will need inside when we get to glass). We need to know which side a ray hits from, and we'll need to be consistent in which direction the normals point.
 
 {{#include ./img/rt/fig-1.06-normal-sides.svg}}
 
@@ -355,7 +357,7 @@ Implement this logic in your code, making sure that in the current render `front
 
 We have implemented `Object` for `Sphere`, but what about multiple spheres? We don't want to check _every_ object for intersection for each ray, so we're going to implement `Object` for a list of `Objects`. Well how is that going to work, can you implement a trait for a list of itself? Yes, you can. We're going to use [trait objects](https://doc.rust-lang.org/book/ch17-02-trait-objects.html). Trait objects are pointers to types, where the only thing known about that type is that it implements a specific trait. If you're familiar with dynamic dispatch, this is dynamic dispatch in Rust. We can create a `Vec<dyn Object>`, which Rust reads as "a list of items which all implement `Object`, and I'll figure the rest out at runtime".
 
-Create a type alias for an entire scene: `pub type Scene = Vec<dyn Object>`. The compiler should now be complaining, as it can't know what the size of `dyn Object` is at compile time, so we can't just put it into a `Vec` so easily. We need to put all our types in **boxes**, which are smart pointers that work with data of unknown size (allocated on the heap not fixed size on the stack). If you haven't figured it out already, what you actually want is `Vec<Box<dyn Object>>`.
+Create a type alias for an entire scene: `pub type Scene = Vec<dyn Object>`. The compiler should now be complaining, as it can't know what the size of `dyn Object` is at compile time, so we can't just put it into a `Vec` so easily. We need to put all our types in **boxes**, which are smart pointers that work with data of unknown size (allocated on the heap, not on the stack). If you haven't figured it out already, what you actually want is `Vec<Box<dyn Object>>`.
 
 Now we have the type nailed down, implement `Object for Scene`. The idea is you return the `Hit` that is closest to the camera, so the one with the smallest `t` of all the spheres. Being able to do this provides some nice abstraction, as we can just check if the ray intersects anywhere in the scene, and get back the `Hit` for the closest object, which is the one the ray actually wants to hit.
 
@@ -424,7 +426,8 @@ bar.set_style(
         .on_finish(ProgressFinish::WithMessage("-- Done!".into())),
 );
 ```
-By default, `indicatif` updates and redraws the progress bar for every update, however we have hundreds of thousands of updates, so this can add significant lag. Limit this draw rate to $x$ times a second with: 
+
+By default, `indicatif` updates and redraws the progress bar for every update, however we have hundreds of thousands of updates, so this can add significant lag. Limit this draw rate to $x$ times a second with:
 
 ```rust, noplayground
 bar.set_draw_rate(5);
@@ -464,7 +467,7 @@ You should have an image like so
 
 ![](./img/7-2.png)
 
-### Task 7.3: Gamma correction
+### Task 7.3: Gamma Rays
 
 Take a look at the shadowing under the sphere. This picture is very dark, but our spheres only absorb half the energy on each bounce, so they are 50% reflectors. If you can’t see the shadow, don’t worry, we will fix that now. These spheres should look pretty light, about a light grey. The reason for this is that almost all image viewers assume that the image is “gamma corrected”, meaning the 0 to 1 values have some transform before being stored as a byte. There are many good reasons for that, but for our purposes we just need to be aware of it. To a first approximation, we can use “gamma 2” which means raising the colour to the power 1/gamma, or in our simple case 0.5, which is a square root.
 
@@ -531,7 +534,7 @@ $$r = v - 2 (\mathbf v \cdot \mathbf n) \mathbf n$$
 
 (Note the minus sign, since $v$ points inwards and $r$ outward.)
 
-Write a function `reflect(v: Vec3, normal: &Vec3) -> Vec3` to implement this. You could put this inside `imply Metal` when that is added in a moment or as a private function at the bottom of `material.rs`.
+Write a function `reflect(v: Vec3, normal: &Vec3) -> Vec3` to implement this. You could put this as a private method of `Metal`, or as a module-scope function at the bottom of `material.rs`.
 
 This function is used to reflect rays off our metal material. Add a struct `Metal` that has a single `Colour` field, and implement `Material` for it, calculating this reflected ray. Note that the reflected ray should only be returned if the dot product of it's direction with the hit normal is greater than zero. A reflection ray that is at an angle of greater than 90 degrees to the normal doesn't make sense (how are you reflecting from under the surface?).
 
@@ -577,7 +580,7 @@ $$
 We can solve for both those components:
 
 <details>
-<summary>Derivation hidden</summary>
+<summary><i>click to expand the derivation of this</i></summary>
 
 > First we solve for $R'_\perp$. The first step here is to construct the perpendicular vector to the normal $n$.
 
@@ -586,8 +589,9 @@ We can solve for both those components:
 > The green vector in the diagram is parallel to $R'_\perp$, and is equivalent to the combined vectors of $R$ then back up along the normal $n$ by $\cos \theta$, hence $R + n \cos \theta$.
 >
 > The current magnitude of this vector is $\sin \theta$, so to normalise we divide by $\sin \theta$. The $R'_\perp$ magnitude we want is $\sin \theta'$, so multiply by that: $\frac{\sin \theta'}{\sin \theta} (\mathbf{R} + \mathbf{n}\cos\theta)$. But $\frac{\sin \theta'}{\sin \theta} = \frac{\eta}{\eta'}$, leading to our final $R_\perp' = \frac{\eta}{\eta '} (\mathbf{R} + \mathbf{n}\cos\theta)$
-> 
+>
 > Onto $R'_\parallel$: The total magnitude of $R'$ is $|R'| = {1} = \sqrt{|R'_\perp|^2 + |R'_\parallel|^2}$. Rearrange this for $|R'_\parallel|$ to $\sqrt{1 - |R'_\perp|^2}$, which is simpy setting the magnitude of $R'_\parallel$ to whatever makes $R'$ a unit vector. This is in the opposite direction to the normal, so use $-n$ as the direction. To simplify, $|R'_\perp|^2$ can also be expressed as a dot product of $R'_\perp$ with itself. This gives us the final $\mathbf{R}_{\parallel}' = - \sqrt{\left|1 - \mathbf{R}_{\perp}'\cdot\mathbf{R}_{\perp}' \right|} \mathbf{n}$
+
 </details>
 
 $$\mathbf{R}_{\perp}' = \frac{\eta}{\eta '} (\mathbf{R} + \mathbf{n}\cos\theta)$$
@@ -714,7 +718,7 @@ We can use vector cross products to form an [orthonormal basis](https://en.wikip
 - $w$ is the vector `look_from - look_at`, so $-w$ is our view direction
 - $u$ is the unit vector of the cross product $v_{up} \times w$
 - $v$ is the cross product $w \times u$
-    - You cannot assume $v = v_{up}$ as we allow $v_{up}$ to not be orthogonal to the view direction
+  - You cannot assume $v = v_{up}$ as we allow $v_{up}$ to not be orthogonal to the view direction
 
 Update the camera `new()` function to take `look_from` and `look_at` points as parameters, as well as a `vup` vector. Calculate `u`, `v`, and `w`, making sure to normalise them all. The new camera origin is `look_from`, and the new horizontal/vertical vectors are `u` and `v` with magnitudes of the viewport's size. The top left corner of the viewport is calculated as before, but the `-z` distance from the origin is now `w` instead of just `1.0`.
 
@@ -741,7 +745,7 @@ There is a plane in our image where everything will be in perfect focus, and eve
 
 {{#include ./img/rt/fig-1.17-cam-lens.svg}}
 
-The range of rays that end up on a particular point of the resulting image go through all parts of the circlar lens, and point from there towards the focus point. Any object closer (or further), will have these intersection points (that should perfectly match for perfect focus) spread over its surface, making it out of focus. 
+The range of rays that end up on a particular point of the resulting image go through all parts of the circlar lens, and point from there towards the focus point. Any object closer (or further), will have these intersection points (that should perfectly match for perfect focus) spread over its surface, making it out of focus.
 
 Since our camera is infinitesimally small, we'll need to pretend it has an actual lens.
 
