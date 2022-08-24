@@ -50,7 +50,7 @@ We scale the range 0-1 from 0-255 by multiplying by 255.999, as the `as` cast fr
 
 ### 2.1
 
-Our `Vec3` struct with all it's methods:
+Our `Vec3` struct with all its methods:
 
 ```rust, noplayground
 pub struct Vec3 {
@@ -80,12 +80,6 @@ impl Vec3 {
         }
     }
 
-    pub fn to_rgb(self) -> image::Rgb<u8> {
-        image::Rgb(
-            [self.x, self.y, self.z].map(|c| (c * 255.999) as u8),
-        )
-    }
-
     pub fn map<F>(self, mut f: F) -> Vec3
     where
         F: FnMut(f64) -> f64,
@@ -95,6 +89,14 @@ impl Vec3 {
             y: f(self.y),
             z: f(self.z),
         }
+    }
+}
+
+impl From<Vec3> for Rgb<u8> {
+    fn from(v: Vec3) -> Self {
+        image::Rgb(
+            [self.x, self.y, self.z].map(|c| (c * 255.999) as u8),
+        )
     }
 }
 ```
@@ -114,7 +116,7 @@ pub struct Vec3 {
 }
 ```
 
-Your two hand-written `Mul` impls:
+Your two handwritten `Mul` impls:
 
 ```rust, noplayground
 impl Mul<Vec3> for f64 {
@@ -136,6 +138,8 @@ impl Mul for Vec3 {
         }
     }
 }
+
+// Optionally a `impl Div for Vec3` like the mult may be useful later
 ```
 
 ### 2.3
@@ -199,7 +203,7 @@ fn main() {
         let ray_direction: Vec3 = top_left + u * horizontal + v * vertical - origin;
 
         //save pixel colour to buffer
-        *px = ray::colour(&Ray::new(origin, ray_direction)).to_rgb();
+        *px = ray::colour(&Ray::new(origin, ray_direction)).into();
     }
     buffer.save("render.png").expect("Could not save image");
 }
@@ -245,8 +249,8 @@ use crate::{ray::Ray, vector::Point};
 //a sphere
 #[derive(Debug, Constructor)]
 pub struct Sphere {
-    center: Point,
-    radius: f64,
+    pub center: Point,
+    pub radius: f64,
 }
 
 //calculate ray-sphere intersection stuff
@@ -265,7 +269,8 @@ impl Sphere {
 This is the condition you want to add to your colour function too
 
 ```rust, noplayground
-if object::Sphere::new(v!(0, 0, -1), 0.5).hit(ray) {
+let sphere = object::Sphere::new(v!(0, 0, -1), 0.5);
+if sphere.hit(ray) {
     return v!(1, 0, 0);
 }
 
@@ -280,10 +285,10 @@ buffer.enumerate_pixels_mut() //create the iterator over the buffer
     .par_bridge() // bridge it to a parallel iterator
     .for_each(|(i, j, px)| { //for each item in the iterator, execute this closure
         //loop body is unchanged
-    }
+    });
 ```
 
-If you're still really struggling with performance, ask someone to have a look over your code with you and we'll see if theres anything else we can do to speed it up.
+If you're still really struggling with performance, ask someone to have a look over your code with you and we'll see if there's anything else we can do to speed it up.
 
 ## 5: Surface Normals & Multiple Objects
 
@@ -308,14 +313,17 @@ impl Sphere {
 }
 ```
 
+Since the discriminant is non-negative, we can discard the `-b + discriminant.sqrt()` case, since the negative case is always closer.
+
 And `Ray::colour()`:
 
 ```rust, noplayground
 pub fn colour(ray: &Ray) -> Colour {
+    let sphere = object::Sphere::new(v!(0, 0, -1), 0.5);
     //if the sphere and ray return Some(t)
-    if let Some(t) = object::Sphere::new(v!(0, 0, -1), 0.5).hit(ray) {
+    if let Some(t) = sphere.hit(ray) {
         //calculate normal, scale and return it
-        let normal = (ray.at(t) - v!(0, 0, -1)).normalise();
+        let normal = (ray.at(t) - sphere.center).normalise();
         (normal + v!(1)) / 2.0
     } else { //else, same as before
         let direction = ray.direction.normalise();
@@ -429,7 +437,7 @@ impl Object for Scene {
 }
 ```
 
-Try not to worry about trait objects too much now, there's a lot of complexity associated with them (vtables, object safety) once you start to dig into it. All you need to understand is that `dyn Object + Sync` is a type that implements both `Object` and `Sync`, and we need to `Box` it on the heap because we don't know what those type are at compile time, so we can't reason about how big they are.
+Try not to worry about trait objects too much now, there's a lot of complexity associated with them (vtables, object safety) once you start to dig into it. All you need to understand is that `dyn Object + Sync` is a type that implements both `Object` and `Sync`, and we need to `Box` it on the heap because we don't know what those types are at compile time, so we can't reason about how big they are.
 
 ### 5.5
 
@@ -467,7 +475,7 @@ pub fn colour(scene: &impl Object, ray: &Ray) -> Colour {
 
 ### 6.1
 
-Pay careful attention to where the randomness is added here. Note also how the colour is not accumulated into an `RGB` type, but one of our own `Vec3` types, and then converted to rgb at the last stage. The body of the updated rendering loop:
+Pay careful attention to where the randomness is added here. Note also how the colour is not accumulated into an `RGB` type, but one of our own `Vec3` types, and then converted to rgb at the last stage for precision. The body of the updated rendering loop:
 
 ```rust, noplayground
 //colour is a vector
@@ -481,7 +489,7 @@ for _ in 0..samples {
     colour = colour + ray::colour(&objects, &Ray::new(origin, ray_direction));
 }
 //save pixel colour to buffer
-*px = (colour / (samples as f64)).to_rgb(); //convert to RGB here
+*px = (colour / (samples as f64)).into(); //convert to RGB here
 ```
 
 You could also draw the entire scene 100 times and average those out if you wanted, but it might require a bit more work to implement so this is the easy route.
@@ -529,7 +537,7 @@ impl Camera {
 }
 ```
 
-`main` is also edited to remove all this and add a single call to `camera::Camera::default()` instead. The compiler will tell you which variables are used and unused where and what you can remove from `main`. The render loop should get it's rays from the camera using `Camera::get_ray()`. Calculate `u` and `v` the same as before, but pass them to the camera:
+`main` is also edited to remove all this and add a single call to `camera::Camera::default()` instead. The compiler will tell you which variables are used and unused where and what you can remove from `main`. The render loop should get its rays from the camera using `Camera::get_ray()`. Calculate `u` and `v` the same as before, but pass them to the camera:
 
 ```rust, noplayground
 let ray = camera.get_ray(u, v);
@@ -569,7 +577,7 @@ Again, I encourage you to style the progress bar yourself.
 
 ### 7.1 & 7.2
 
-I added my randon unit vector function to the `Vec3` struct, but you can put it wherever you think makes sense.
+I added my random unit vector function to the `Vec3` struct, but you can put it wherever you think makes sense.
 
 ```rust, noplayground
 pub fn rand_unit() -> Self {
@@ -867,11 +875,14 @@ fn refract(incident: Vec3, normal: &Vec3, ratio: f64) -> Vec3 {
 `Dielectric` and its `Material` impl:
 
 ```rust, noplayground
-pub struct Dielectric(f64);
+#[derive(Debug, Constructor)]
+pub struct Dielectric {
+    ratio: f64;
+};
 
 impl Material for Dielectric {
     fn scatter(&self, incident_ray: &Ray, hit: &Hit) -> Option<Reflection> {
-        let ratio = if hit.front_face { 1.0 / self.0 } else { self.0 };
+        let ratio = if hit.front_face { 1.0 / self.ratio } else { self.ratio };
         let refracted = refract(incident_ray.direction.normalise(), &hit.normal, ratio);
         let out_ray = Ray::new(hit.impact_point, refracted);
         Some(Reflection {
@@ -888,7 +899,7 @@ The updated `Dielectric::scatter` method:
 
 ```rust, noplayground
 fn scatter(&self, incident_ray: &Ray, hit: &Hit) -> Option<Reflection> {
-    let ratio = if hit.front_face { 1.0 / self.0 } else { self.0 };
+    let ratio = if hit.front_face { 1.0 / self.ratio } else { self.ratio };
     let unit_direction = incident_ray.direction.normalise();
 
     let cos_theta = -unit_direction.dot(&hit.normal);
@@ -918,6 +929,8 @@ fn reflectance(cos_theta: f64, n: f64) -> f64 {
     r0 + (1.0 - r0) * f64::powi(1.0 - cos_theta, 5)
 }
 ```
+
+`powi` raises a float to an integer power.
 
 The `if` expression that binds to `scatter_direction` needs updating to add an extra condition for reflectance:
 
