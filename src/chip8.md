@@ -110,7 +110,7 @@ When writing code, logging events to the terminal can be really useful to help d
 
 Add both `log` and `env_logger` to your package manifest, then add a call to `env_logger::init()` as the first call in your `main()` function. Run your code again, but prepend the cargo command with `RUST_LOG=info` (ie, `RUST_LOG=info cargo run ...`) and you should see the library, and other crates we depend on such as `wgpu`, doing things. Set the log level to debug to see even more.
 
-If you run `export RUST_LOG=info`, then that sets the log level for the entire terminal session. Try to at least always print error logs, so you can see if anythings wrong.
+If you run `export RUST_LOG=info`, then that sets the log level for the entire terminal session. Error logs will always be printed by default, but you might find it useful to leave `warn` or `info` logs on.
 
 Add some logging calls using the `log` macros to your code so you can easily trace what's going on. Try to choose an appropriate log level for each call, to make your logs easy to consume and filter. Using `trace` and `debug` logs are useful for tracking down issues, you'll thank yourself later on.
 
