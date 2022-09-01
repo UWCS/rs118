@@ -47,19 +47,19 @@ Only a few of the fields you need are included here, you'll need to add a few mo
 ```rust,noplayground
 impl ChipState {
     pub fn new() -> Self {
-        Self { 
+        Self {
             memory: [0; 4096],
-            registers: [0; 16], 
+            registers: [0; 16],
             program_counter: 0x200,
-            display: [[0; 64]; 32],
+            display: [[chip8_base::Pixel::default(); 64]; 32],
             stack_pointer: 0,
             stack: [0; 16],
         }
     }
-} 
+}
 ```
 
-Note how both the type and the function are `pub`, so the module above (main, the crate root) can use them. The `program_counter` is initialized to `0x200`, as this is where CHIP-8 programs start. 
+Note how both the type and the function are `pub`, so the module above (main, the crate root) can use them. The `program_counter` is initialized to `0x200`, as this is where CHIP-8 programs start.
 
 ## Task 1.3 & 1.4
 
@@ -78,7 +78,7 @@ impl chip8_base::Interpreter for ChipState {
     fn buzzer_active(&self) -> bool {
         todo!()
     }
-} 
+}
 ```
 
 Look at how the methods are capturing `self`. `step()` takes a mutable reference, because it needs to mutate the state of the virtual machine, but it doesn't move, because then we wouldn't be able to do more than one step. The other two take immutable references, because they only need to read state, not modify it.
@@ -187,7 +187,23 @@ fn fetch(&mut self) -> u16 {
 
 We don't have to add any additional info to `dbg!()` because the expression and line number are printed for us.
 
-## Task 2.3 & 2.4
+## Task 2.3
+
+Our main should now look like this:
+
+```rust, noplayground
+fn main() {
+    env_logger::init();
+
+    let vm = ChipState::new();
+
+    chip8_base::run(vm);
+}
+```
+
+Don't forget to add the crates to `Cargo.toml`. Where you choose to add logs is up to you, but as a rule of thumb, put a `log::debug!()` call everywhere you expect something might go wrong. You can use format strings in log macros too, just like `println!()`.
+
+## Task 2.4 & 2.5
 
 First, we've written a helper method to break the `u16` instruction down into four nibbles:
 
@@ -274,6 +290,7 @@ fn execute(&mut self, instruction: u16) -> Option<chip8_base::Display> {
     // 1nnn JP addr: Jump to location nnn
     (0x1, _, _, _) => self.program_counter = Self::nnn(instruction)
     ...
+}
 ```
 
 Here we use a bitmask to chop off the first bit to get the last 12. This approach disregards the last 3 nibbles in the pattern match, since those variables aren't used, and are taken straight from `instruction` instead. You could also construct `nnn` from those nibbles, though it is more involved.
@@ -334,14 +351,14 @@ fn execute(&mut self, instruction: u16) -> Option<chip8_base::Display> {
         self.registers[0xF] = 0;
         let ind = self.index as usize;
         let sprite = &self.memory[ind..(ind + n as usize)];     // Fetch as slice
-        
+
         // Enumerate to get the value (row) and index (i) at once
         for (i, row) in sprite.iter().enumerate() {
             let pxy = tly + i as u8;
             if pxy > 31 {   // Stop at edge
                 break;
             }
-            
+
             for j in 0..8 {     // For each bit index
                 let pxx = tlx + j;
                 if pxx > 63 {   // Stop at edge
@@ -352,8 +369,8 @@ fn execute(&mut self, instruction: u16) -> Option<chip8_base::Display> {
                 let new_px = (row & mask) >> (7 - j);        // Mask and shift to 0 or 1
 
                 // Check for collision
-                if new_px == 1 && *old_px == 1 {
-                    self.registers[0xF] = 1 
+                if new_px == White && *old_px == White {
+                    self.registers[0xF] = 1
                 }
                 *old_px ^= new_px;      // Apply as XOR
             }
