@@ -27,4 +27,6 @@ I encourage you to play around with the snippets to help get a better understand
 
 The source for this book is available [on GitHub](https://github.com/uwcs/rs118), and contributions/corrections/suggestions/additions are welcome.
 
+RS118 is kindly supported by an event grant from [The Rust Foundation](https://foundation.rust-lang.org/). They do a lot of really important stuff for the language, so go show them some love.
+
 This book and all the code associated with RS118 is distributed under the terms of the MIT licence, Copyright 2022 Joey Harrison & The University of Warwick Computing Society. If you use anything from this book or the associated GitHub repos, please give credit.
