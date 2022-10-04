@@ -31,7 +31,7 @@ So we have some players and a game board, but what now? Well it's no good if nei
 
 Create a new, empty instance of your game board type in main, and write some code to print the empty board. Experiment with manually adding some moves to the board and make sure your code can handle printing `X`s and `O`s properly.
 
-You'll most likely want to iterate through your board array in some way, printing some other characters along with it. You'll need some code to print your `Player` type too (using the [`Display` trait](https://doc.rust-lang.org/rust-by-example/hello/print/print_display.html if you feel fancy), but a simple `match` expression with some `println!()`s will likely do for now.)
+You'll most likely want to iterate through your board array in some way, printing some other characters along with it. You'll need some code to print your `Player` type too (using the [`Display` trait](https://doc.rust-lang.org/rust-by-example/hello/print/print_display.html) if you feel fancy), but a simple `match` expression with some `println!()`s will likely do for now.)
 
 **Note:** Rust might not allow you to compare the equality of two custom types so easily. This is also _A Good Thing™_ because the notion of equality is not so simple for all types, so much so that Rust splits it into two traits, `Eq` and `PartialEq`. You will probably want to derive (`#[derive()]`) them for your custom `Player` type to allow you to use `match`, and the `==` and `!=` operators (you may also want `Copy` and `Clone` to make your life easier).
 
