@@ -188,6 +188,8 @@ Writing unit tests to test each instruction in isolation is a good idea too. [Ch
 
 Well, we've got this far. However, you still have about 30 instructions before you can say you're done. A few test ROMS can be found [here](https://github.com/UWCS/rs118-chip8/tree/main/roms) for testing all your instructions work. Remember, unit tests are your friend, have a look at some of the unit tests in our implementation if you're stuck on how to write these.
 
+As a little bonus for getting this far, [here's a version of `main.rs`](https://github.com/ericthelemur/chip9/blob/master/src/main.rs) where you can pass the ROM and frequency as command line arguments.
+
 Some advice:
 
 - Make sure you implement the `buzzer_active()` function correctly.
