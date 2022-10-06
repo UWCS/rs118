@@ -20,7 +20,7 @@ Create a new cargo project, and open up the `Cargo.toml` file. Our emulator expo
 
 ```toml
 [dependencies]
-rs118-chip8 = "0.1"
+chip8_base = "0.2"
 ```
 
 Take a look at the [`chip8_base`](https://docs.rs/chip8_base/latest/chip8_base/) library, that we'll be using as the base for our implementation. We can see that it exposes two type aliases, `Display` and `Keys`, a `Pixel` enum, and an `Intepreter` trait. The idea is that you create your own interpreter by implementing the trait, and then the `run()` method will run it for you. This works because `run()` is written to accept any type that implements the `Interpreter` trait as an argument.
@@ -211,3 +211,5 @@ The CHIP-8 Specification is available at <http://devernay.free.fr/hacks/chip8/C8
 A more detailed explanation of each instruction and more of the details of the "hardware" are available at <https://tobiasvl.github.io/blog/write-a-chip-8-emulator/>
 
 A large collection of CHIP-8 stuff is available at <https://chip-8.github.io/links/>
+
+A sample solution is available at <https://github.com/ericthelemur/chip8> or <https://github.com/UWCS/rs118-chip8/tree/main/chip8>
