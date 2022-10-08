@@ -1,6 +1,6 @@
 # Introduction
 
-Hello, and welcome to RS118! This is a short series of lectures and projects designed to introduce beginners to ~~coding~~ programming in Rust. There is a basic level of programming knowledge assumed throughout.
+Hello, and welcome to RS118! This is a short series of lectures and projects designed to introduce beginners to programming in Rust. There is a basic level of programming knowledge assumed throughout.
 
 This tutorial will heavily lean on and is adapted from [_The Rust Programming Language_](https://doc.rust-lang.org/book/), more commonly known as **The Book**. Book chapters and links are referenced throughout, and it is recommended you read the entire chapter, as these notes are just here as a brief summary. Other resources:
 
