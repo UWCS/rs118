@@ -19,6 +19,8 @@ Implement a simple data type to represent players. We could just use strings or 
 
 Recall that we can use `struct`s and `enum`s to create our own data types. Which of these could be used to represent our a type with only two different values?
 
+For any `struct` or `enum` you write today, add the line `#[derive(Copy, Clone)]` just above it. This [derive statement](https://doc.rust-lang.org/rust-by-example/trait/derive.html) tells the compiler to copy your types whenever it would usually move it, allowing us to (mostly) ignore the borrow checker and focus on the basics for now. Don't worry too much about what this does exactly for now, [but details are available here if you're interested](https://doc.rust-lang.org/book/appendix-03-derivable-traits.html#clone-and-copy-for-duplicating-values).
+
 ### Task 1.2
 
 Implement a simple data type to represent the state of the game/board.
@@ -33,7 +35,7 @@ Create a new, empty instance of your game board type in main, and write some cod
 
 You'll most likely want to iterate through your board array in some way, printing some other characters along with it. You'll need some code to print your `Player` type too (using the [`Display` trait](https://doc.rust-lang.org/rust-by-example/hello/print/print_display.html) if you feel fancy), but a simple `match` expression with some `println!()`s will likely do for now.)
 
-**Note:** Rust might not allow you to compare the equality of two custom types so easily. This is also _A Good Thing™_ because the notion of equality is not so simple for all types, so much so that Rust splits it into two traits, `Eq` and `PartialEq`. You will probably want to derive (`#[derive()]`) them for your custom `Player` type to allow you to use `match`, and the `==` and `!=` operators (you may also want `Copy` and `Clone` to make your life easier).
+**Note:** Rust might not allow you to compare the equality of two custom types so easily. This is also _A Good Thing™_ because the notion of equality is not so simple for all types, so much so that Rust splits it into two traits, `Eq` and `PartialEq`. You will probably need to derive them for your type, by adding `Eq, PartialEq` alongside `Copy, Clone` in the `#[derive()]` attribute. [Again, The Book has more details on this](https://doc.rust-lang.org/book/appendix-03-derivable-traits.html#partialeq-and-eq-for-equality-comparisons).
 
 ## Task 2: Gaming
 
