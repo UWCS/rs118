@@ -3,7 +3,7 @@
 [Introduction ](./intro.md)
 
 - [Part 1 - Hello, Ferris!](./1.md)
-- [Part 2 - borrowck 1-2](./2.md)
+- [Part 2 - Fighting the Borrow Checker](./2.md)
 - [Part 3 - Don't panic](./3.md)
 - [Tic Tac Toe Project](./ttt.md)
   <!-- - [Solutions](./ttt-solns.md) -->
