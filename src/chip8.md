@@ -130,7 +130,7 @@ Congrats! You're successfully emulating a CPU* (*CHIP-8 is not a CPU but it's an
 
 ## 3: The First Few Instructions
 
-In the last section, you implemented one or two random instructions of your choosing, plus our fictitious NOP instruction. Now, I'm gonna talk you through implementing a few more, such that you can run a real program. There's an IBM test ROM that does nothing except display the IBM logo, but using only 6 instructions, so those are what we'll implement.
+In the last section, you implemented one or two random instructions of your choosing, plus our fictitious NOP instruction. Now, I'm gonna talk you through implementing a few more, such that you can run a real program. We've written a UWCS test ROM that does nothing except display the UWCS logo, but using only 6 instructions, so those are what we'll implement.
 
 ### Task 3.1: 00E0 (clear screen)
 
