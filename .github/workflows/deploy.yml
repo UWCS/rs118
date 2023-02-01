@@ -18,4 +18,4 @@ jobs:
           config: ${{ vars.SITES_SSH_CONFIG }}
           if_key_exists: fail
       - name: Update Server
-        run: ssh sites "/srv/rs118/update.sh"
+        run: ssh sites "chmod +x /srv/rs118/update.sh && /srv/rs118/update.sh"
