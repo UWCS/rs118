@@ -12,7 +12,7 @@ Also, unlike the original book, I've not included the code snippets inline, as t
 
 ## Contents
 
-[[_TOC_]]
+[[TOC]]
 
 ## 1: Images
 
