@@ -13,9 +13,9 @@ jobs:
         uses: shimataro/ssh-key-action@v2
         with:
           key: ${{ secrets.SITES_SSH_PRIVATE_KEY }}
-          name: id_rsa
-          known_hosts: ${{ secrets.SITES_SSH_KNOWN_HOSTS }}
-          config: ${{ vars.SITES_SSH_CONFIG }}
+          name: id_ed25519
+          known_hosts: ${{ vars.SSH_KNOWN_HOSTS }}
+          config: ${{ vars.SSH_CONFIG }}
           if_key_exists: fail
       - name: Update Server
         run: ssh sites "chmod +x /srv/rs118/update.sh && /srv/rs118/update.sh"
