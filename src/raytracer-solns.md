@@ -95,7 +95,7 @@ impl Vec3 {
 impl From<Vec3> for Rgb<u8> {
     fn from(v: Vec3) -> Self {
         image::Rgb(
-            [self.x, self.y, self.z].map(|c| (c * 255.999) as u8),
+            [v.x, v.y, v.z].map(|c| (c * 255.999) as u8),
         )
     }
 }
@@ -237,7 +237,7 @@ pub fn colour(ray: &Ray) -> Colour {
 
 ## 4: Spheres
 
-### 4.1
+### 4.1
 
 The entirety of `object.rs` is shown below. Pay careful attention to the quadratic formula in `hit`.
 
@@ -550,15 +550,16 @@ The Indicatif code added in main:
 
 ```rust, noplayground
 println!("Rendering Scene...");
-    let bar = ProgressBar::new((img_width * img_height) as u64);
-    bar.set_style(
-        ProgressStyle::default_bar()
-            .template(
-                "{spinner:.green} [{wide_bar:.green/white}] {percent}% - {elapsed_precise} elapsed {msg}",
-            )
-            .progress_chars("#>-")
-            .on_finish(ProgressFinish::WithMessage("-- Done!".into())),
-    );
+let bar = ProgressBar::new((img_width * img_height) as u64)
+    .with_finish(ProgressFinish::WithMessage("-- Done!".into()));
+bar.set_style(
+    ProgressStyle::default_bar()
+    .template(
+        "{spinner:.green} [{wide_bar:.green/white}] {percent}% - {elapsed_precise} elapsed {msg}",
+    )
+    .expect("ProgressStyle template should be valid.")
+    .progress_chars("#>-")
+);
 ```
 
 `.progress_with(bar)` is added to the iterator chain just before the `for_each()` call
@@ -583,12 +584,14 @@ I added my random unit vector function to the `Vec3` struct, but you can put it 
 pub fn rand_unit() -> Self {
     loop {
         //random f64 range 0-1, scale it -1 to 1
+        //remember the macro will turn this into three seperate random calls,
+        //we are not repeating the same value three times
         let v = v!(rand::random::<f64>() * 2.0 - 1.0);
 
         //if the vector lies in the unit sphere
         if v.len() < 1.0 {
             //normalise so it lies *on* the sphere and is a unit vector
-            break v.normalise();
+            return v.normalise();
         }
     }
 }
@@ -717,7 +720,7 @@ impl<M: Material> Object for Sphere<M> {
 `ray::colour` should look like this now too:
 
 ```rust, noplayground
-ub fn colour(scene: &impl Object, ray: &Ray, depth: u8) -> Colour {
+pub fn colour(scene: &impl Object, ray: &Ray, depth: u8) -> Colour {
     if depth == 0 {
         return v!(0);
     }
@@ -1015,7 +1018,7 @@ let objects: Scene = vec![
     )),
     Box::new(Sphere::new(
         v!(-1.0, 0.0, -1.0),
-        0.5,,
+        0.5,
         Dielectric::new(1.5))),
     Box::new(Sphere::new(
         v!(1.0, 0.0, -1.0),
@@ -1037,14 +1040,14 @@ The random vector in a unit circle function:
 ```rust, noplayground
 fn random_in_unit_circle() -> Vec3 {
     //want random numbers -1 to 1
-    let dist = rand::distributions::Uniform::new_inclusive(-1.0, 1.0);
-    let mut rng = rand::thread_rng();
+    let dist = rand::distr::Uniform::new_inclusive(-1.0, 1.0).expect("Rng range should be valid.");
+    let mut rng = rand::rng();
     loop {
-        let v = v!(dist.sample(&mut rng), dist.sample(&mut rng), 0);
+        let v = v!(rng.sample(dist), rng.sample(dist), 0);
         //if the vector lies in the unit sphere
         if v.len() < 1.0 {
             //normalise so it lies *on* the sphere
-            break v.normalise();
+            return v.normalise();
         }
     }
 }

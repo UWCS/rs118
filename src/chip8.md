@@ -35,7 +35,7 @@ The first one is the main driver function of your interpreter that you'll have t
 
 ### Task 0.3: Git Good
 
-Cargo initialises your new project as a git repo. It does this for a reason, to encourage you to use version control. If you aren't familiar with git, check out our [Git Good resources](https://uwcs.co.uk/resources/git-good-2022/). Make a new commit every time you change or try something, so you can keep track of what you've done and roll back if things break. Commit _at least_ when you've done each task.
+Cargo initialises your new project as a git repo. It does this for a reason, to encourage you to use version control. If you aren't familiar with git, check out our [Git Good resources](https://uwcs.co.uk/resources/git-good/). Make a new commit every time you change or try something, so you can keep track of what you've done and roll back if things break. Commit _at least_ when you've done each task.
 
 ## 1: The Virtual Machine
 

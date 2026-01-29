@@ -101,12 +101,12 @@ macro_rules v! {
 }
 ```
 
-The arguments are declared using syntax similar to `match`: `() => {}`. The macro matches on the pattern in the parentheses, and then expands to the code in the braces. In the parentheses goes the arguments to the macro, which are Rust syntax items, specified like `\$x: ty`, where `\$x` is the name of the token, and `ty` is the type of the syntax token. There's a few kinds of tokens, but we'll just use `expr` for now, which matches any expression, so takes almost anything.
+The arguments are declared using syntax similar to `match`: `() => {}`. The macro matches on the pattern in the parentheses, and then expands to the code in the braces. In the parentheses goes the arguments to the macro, which are Rust syntax items, specified like `$x: ty`, where `$x` is the name of the token, and `ty` is the type of the syntax token. There's a few kinds of tokens, but we'll just use `expr` for now, which matches any expression, so takes almost anything.
 
 ```rust, noplayground
 macro_rules v! {
-    (\$x: expr) => {
-        Vec3::new(\$x, \$x, \$x)
+    ($x: expr) => {
+        Vec3::new($x, $x, $x)
     }
 }
 ```
@@ -117,11 +117,11 @@ We're going to add another pattern too to create a vector with three different a
 
 ```rust
 macro_rules! v {
-    (\$x: expr, \$y: expr, \$z: expr) => {
-        Vec3::new(\$x, \$y, \$z)
+    ($x: expr, $y: expr, $z: expr) => {
+        Vec3::new($x, $y, $z)
     };
-    (\$x: expr) => {
-        Vec3::new(\$x, \$x, \$x)
+    ($x: expr) => {
+        Vec3::new($x, $x, $x)
     };
 }
 ```
@@ -131,11 +131,11 @@ We'll add another neat little trick using `From` again. `f64::from` accepts any 
 ```rust
 #[macro_export]
 macro_rules! v {
-    (\$x:expr, \$y: expr, \$z: expr) => {
-        Vec3::new(f64::from(\$x), f64::from(\$y), f64::from(\$z))
+    ($x:expr, $y: expr, $z: expr) => {
+        Vec3::new(f64::from($x), f64::from($y), f64::from($z))
     };
-    (\$x:expr) => {
-        Vec3::new(f64::from(\$x), f64::from(\$x), f64::from(\$x))
+    ($x:expr) => {
+        Vec3::new(f64::from($x), f64::from($x), f64::from($x))
     };
 }
 ```
@@ -403,7 +403,7 @@ Check you haven't introduced any bugs by making sure your render is the same as 
 
 ### Task 6.3: Progress Bars
 
-Taking 100 samples for each pixel is probably making your renderer start to chug again. If it's really taking too long, try dropping the number of samples, but we can add a progress bar as a nice little touch to help us see how long it's got left. We're going to use another crate: [`indicatif`](https://crates.io/crates/indicatif/0.16.2) (0.16 is required for the below styling to work, 0.17 changes the syntax).
+Taking 100 samples for each pixel is probably making your renderer start to chug again. If it's really taking too long, try dropping the number of samples, but we can add a progress bar as a nice little touch to help us see how long it's got left. We're going to use another crate: [`indicatif`](https://crates.io/crates/indicatif).
 
 Indicatif works by binding a progress bar to iterators, and then shows a progress bar in the console as the iterator progresses. Have a read over the docs and examples to get an example of how it works.
 
@@ -411,26 +411,23 @@ Remember that we're using Rayon's parallel iterators instead of regular iterator
 
 ```toml
 [dependencies]
-indicatif = { version = "0.16", features = ["rayon"] }
+indicatif = { version = "0.18", features = ["rayon"] }
 ```
 
-Add a progress bar with a given length to your program by declaring one in main using `ProgressBar::new()`. Configure its style and format to your liking (the style I used is shown below). Add it to your parallel iterator using `progress_with()`.
+Or simply use the command `cargo add indicatif --features rayon`.
+
+Add a progress bar with a given length (i.e. the number of elements in your iterator) to your program by declaring one in main using `ProgressBar::new(length)`. Configure its style and format to your liking (the style I used is shown below). Add it to your parallel iterator using `progress_with()`.
 
 ```rust, noplayground
+bar = bar.with_finish(ProgressFinish::WithMessage("-- Done!".into()));
 bar.set_style(
     ProgressStyle::default_bar()
         .template(
             "{spinner:.green} [{wide_bar:.green/white}] {percent}% - {elapsed_precise} elapsed {msg}",
         )
+        .expect("ProgressStyle template should be valid.")
         .progress_chars("#>-")
-        .on_finish(ProgressFinish::WithMessage("-- Done!".into())),
 );
-```
-
-By default, `indicatif` updates and redraws the progress bar for every update, however we have hundreds of thousands of updates, so this can add significant lag. Limit this draw rate to $x$ times a second with:
-
-```rust, noplayground
-bar.set_draw_rate(5);
 ```
 
 ![](./img/progress-bar.png)
@@ -445,7 +442,7 @@ We're about ready to start making objects look realistic. Diffuse objects (that 
 
 Light rays may also be absorbed rather than reflected. Darker surface have higher levels of absorption (that's why it's dark, they don't reflect light). [Lambertian reflectance](https://en.wikipedia.org/wiki/Lambertian_reflectance) is the property that defines an ideal diffusely reflecting surface, and we're going to model it.
 
-Light hitting the surface at an angle further from the normal have less colour influence, as they hit at a shallower angle. This property can be closely modelled by sampling in a unit sphere which has the surface as a tangent.
+Light hitting the surface at an angle further from the normal have less colour influence, as they hit at a shallower angle. This property can be closely modelled by sampling in a unit sphere which has the surface as a tangent. Remember we are modelling our rays in reverse, less influence means less of our rays being reflected in that direction.
 
 The unit radius sphere tangent to the hit point $p$ of a surface which is outside the surface. This has its centre at $(\mathbf P + \mathbf n)$, where $\mathbf n$ is the normal to the surface at $\mathbf P$. Pick a random point $S$ inside the unit radius sphere and send a ray from the hit point $\mathbf P$ to the random point $\mathbf S$, to give us a random vector $(\mathbf S - \mathbf P)$, that will be the diffuse reflected ray.
 
@@ -542,7 +539,7 @@ Update your scene so you have four spheres:
 
 - Center `(0, 0, -1)`, radius `0.5`, `(0.7, 0.3, 0.3)` lambertian
 - Center `(-1, 0 -1)`, radius `0.5`, `(0.8, 0.8, 0.8)` metal
-- Center `(0, 0, -1)`, radius `0.5`, `(0.8, 0.6, 0.2)` metal
+- Center `(1, 0, -1)`, radius `0.5`, `(0.8, 0.6, 0.2)` metal
 - Center `(0, -100.5, -1)`, radius `100`, `(0.8, 0.8, 0)` lambertian
 
 Your new render should look like this. See how the metal spheres are reflecting the centre sphere, and you can see the other half of the ground sphere behind them.
@@ -672,7 +669,7 @@ $$
 
 $n$ is the refractive index of the material, and $\theta$ is the angle between the normal and the incident light ray. Implement a function that calculates $R(\theta)$, taking $\theta$ and $n$ as parameters.
 
-We'll use the function by checking if $R(\theta)$ is greater than a random double every time we call `Dielectric::scatter`, and reflect instead of refract if so. You should also still be reflecting if the conditions for total internal reflection are met.
+We'll use the function by checking if $R(\theta)$ is greater than a random f64 every time we call `Dielectric::scatter`, and reflect instead of refract if so. You should also still be reflecting if the conditions for total internal reflection are met.
 
 Notice how the sphere looks a little fuzzier around the edges, and a bit more realistic?
 
