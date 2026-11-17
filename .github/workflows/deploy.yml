@@ -1,21 +1,39 @@
-name: Deploy to site
+name: Build and deploy RS118 site
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
   workflow_dispatch:
-    
+
+permissions:
+  contents: read
+  packages: write
+
+concurrency:
+  group: rs118-deploy
+  cancel-in-progress: true
+
 jobs:
   build:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Install SSH key
-        uses: shimataro/ssh-key-action@v2
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+
+      - name: Login to GHCR
+        uses: docker/login-action@v4
         with:
-          key: ${{ secrets.SITES_SSH_PRIVATE_KEY }}
-          name: id_ed25519
-          known_hosts: ${{ vars.SSH_KNOWN_HOSTS }}
-          config: ${{ vars.SSH_CONFIG }}
-          if_key_exists: fail
-      - name: Update Server
-        run: ssh sites "/srv/rs118/update.sh"
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push Docker img
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          push: true
+          tags: ghcr.io/${{ github.repository }}:${{ github.ref_name }}
