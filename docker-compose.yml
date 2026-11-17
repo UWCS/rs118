@@ -1,8 +1,7 @@
 services:
   rs118:
     container_name: rs118
-    #image: ghcr.io/uwcs/rs118:main
-    image: rs118
+    image: ghcr.io/uwcs/rs118:main
     restart: unless-stopped
     ports:
       - "1113:80"
